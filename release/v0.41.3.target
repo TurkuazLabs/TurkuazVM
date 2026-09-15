@@ -1,0 +1,7 @@
+# Dosya Yolu: /turkuazvm/release/v0.41.3.target
+# Amac: v0.41.3 release hedef ref'ini kaydeder
+# Modul - Text
+# Version: 0.41.3
+# Aciklama: v0.41.3 GitHub Release hedefinin main dalindaki yayin commit'i oldugunu belirtir
+# Bagimli Oldugu Katman: Tool | CI/CD
+target=main
