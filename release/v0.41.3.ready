@@ -1,8 +1,0 @@
-# Dosya Yolu: /turkuazvm/release/v0.41.3.ready
-# Amac: v0.41.3 release metadata'sinin yayin icin hazir oldugunu isaretler
-# Modul - Text
-# Version: 0.41.3
-# Aciklama: v0.41.3 release notlari ve surum metadata'si hazirlik isaretidir
-# Bagimli Oldugu Katman: Tool | CI/CD
-status=ready
-version=0.41.3

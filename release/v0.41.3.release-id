@@ -1,8 +1,0 @@
-# Dosya Yolu: /turkuazvm/release/v0.41.3.release-id
-# Amac: v0.41.3 yayin kimligini depoda sabitler
-# Modul - Text
-# Version: 0.41.3
-# Aciklama: GitHub Release hedef etiketi ve basligini tek yerde tanimlayan metadata kaydidir
-# Bagimli Oldugu Katman: Tool | CI/CD
-tag=v0.41.3
-title=TurkuazVM v0.41.3

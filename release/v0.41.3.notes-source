@@ -1,7 +1,0 @@
-# Dosya Yolu: /turkuazvm/release/v0.41.3.notes-source
-# Amac: v0.41.3 GitHub Release not kaynagini kaydeder
-# Modul - Text
-# Version: 0.41.3
-# Aciklama: GitHub Release govdesinin RELEASE_NOTES_v0.41.3.md dosyasindan alinacagini belirtir
-# Bagimli Oldugu Katman: Tool | CI/CD
-notes=RELEASE_NOTES_v0.41.3.md

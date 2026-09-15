@@ -1,7 +1,0 @@
-# Dosya Yolu: /turkuazvm/release/v0.41.3.publisher
-# Amac: v0.41.3 release publisher kimligini kaydeder
-# Modul - Text
-# Version: 0.41.3
-# Aciklama: Release Publisher workflow ile olusturulacak surumun otomasyon kaydidir
-# Bagimli Oldugu Katman: Tool | CI/CD
-publisher=.github/workflows/release-publish.yml
