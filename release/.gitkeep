@@ -1,0 +1,6 @@
+# Dosya Yolu: /turkuazvm/release/.gitkeep
+# Amac: Release yardimci klasorunu surum deposunda tutar
+# Modul - Text
+# Version: 0.41.3
+# Aciklama: Release otomasyonu icin ayrilan klasorun Git tarafindan izlenmesini saglar
+# Bagimli Oldugu Katman: Tool | CI/CD
