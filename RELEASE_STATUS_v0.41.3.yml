@@ -1,0 +1,46 @@
+# 📄 Dosya Yolu: /turkuazvm/RELEASE_STATUS_v0.41.3.yml
+# 📌 Amac: TurkuazVM v0.41.3 CI ve release hardening patch adayinin durumunu kaydeder
+# 📌 Modul - YAML
+# Version: 0.41.3
+# Aciklama: Gercek Windows/Linux Cargo ve QEMU CI dogrulamasini, Tauri asset duzeltmesini ve GitHub governance akislarini release metadata olarak toplar
+# Bagimli Oldugu Katman: View | Controller | Service | Repo | Tool | Config
+
+version: 0.41.3
+package: TurkuazVM-v0.41.3-FULL
+package_kind: CI_RELEASE_HARDENING_PATCH
+base: TurkuazVM-v0.41.2-FULL
+authoritative_manifest: PENDING_RELEASE_PACKAGE
+compatibility:
+  config_schema: 22
+  download_sources_schema: 5
+  engine_api_version: 24
+  vm_manifest_schema: 6
+  guest_catalog_schema: 4
+  android_image_manifest_schema: 4
+  guest_agent_protocol_version: 2
+  breaking_change: false
+focus:
+- Windows environment variables are resolved case-insensitively in CI host dependency tooling
+- Linux compiler host dependencies include Tauri GTK/WebKit and libudev development packages
+- Tauri PNG icon asset is restored from the existing application icon source
+- Compiler gate validates the Rust workspace on Windows and Linux runners
+- Runtime validation executes real QEMU smoke coverage on Windows and Linux runners
+- GitHub contribution, security, CODEOWNERS, PR and issue governance is standardized
+preserved:
+- v0.41.2 Connection Center running-VM SSH/RDP prepare behavior
+- v0.41.1 VM workspace usability patch
+- v0.41.0 VM control-first workspace
+- v0.40.14 Android Emulator port config wiring
+validation:
+  governance_pr_all_five_workflows: PASS
+  compiler_linux_workspace: PASS
+  compiler_windows_workspace: PASS
+  runtime_linux_qemu_smoke: PASS
+  runtime_windows_qemu_smoke: PASS
+  host_resilience_policy: PASS
+  host_resilience_runtime: PASS
+  artifact_cache_agent: PASS
+  release_v0413_pr_ci: REQUIRED_BEFORE_MERGE
+  release_v0413_main_ci: REQUIRED_BEFORE_TAG
+release_gate: CANDIDATE_PR_CI_REQUIRED
+production_claim: false

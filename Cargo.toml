@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/Cargo.toml
 # 📌 Amac: TurkuazVM Rust workspace paketlerini ve ortak derleme ayarlarini tanimlar
 # 📌 Modul - TOML
-# Version: 0.41.2
-# Aciklama: v0.41.2 Baglanti Merkezi calisan-VM erisim yamasini workspace surumunde toplar; v0.41.1 kullanilabilirlik ve v0.40.14 runtime duzeltmelerini korur
+# Version: 0.41.3
+# Aciklama: v0.41.3 CI ve release hardening patchini workspace surumunde toplar; v0.41.2 Baglanti Merkezi davranisini korur
 # Bagimli Oldugu Katman: Controller | Service | Repo | Tool | View
 
 [workspace]
@@ -30,7 +30,7 @@ members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.41.2"
+version = "0.41.3"
 edition = "2024"
 rust-version = "1.98.0"
 license = "MIT OR Apache-2.0"
