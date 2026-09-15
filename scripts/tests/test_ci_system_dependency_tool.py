@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/tests/test_ci_system_dependency_tool.py
 # 📌 Amac: CI sistem bagimlilik tool config planlama ve Windows PATH expansion davranisini regression ile kilitler
 # 📌 Modul - Python
-# Version: 1.0.0
-# Aciklama: Gercek paket kurulumu yapmadan compiler/runtime profillerini ve fail-closed platform kontrolunu dogrular
+# Version: 1.0.1
+# Aciklama: Gercek paket kurulumu yapmadan compiler/runtime profillerini, case-insensitive Windows ortam degiskenlerini ve fail-closed platform kontrolunu dogrular
 # Bagimli Oldugu Katman: Tool
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as temp_dir:
         github_path = Path(temp_dir) / "github-path.txt"
         environ = {
-            "ProgramFiles": r"C:\\Program Files",
+            "PROGRAMFILES": r"C:\Program Files",
             "GITHUB_PATH": str(github_path),
             "PATH": "",
         }
@@ -36,6 +36,7 @@ def main() -> int:
         runtime_windows = tool.plan("runtime-windows", host_platform="windows")
         assert runtime_windows.commands[0][:3] == ("choco", "install", "qemu")
         assert str(runtime_windows.path_exports[0]).endswith("Program Files\\qemu")
+        assert "%ProgramFiles%" not in str(runtime_windows.path_exports[0])
         assert runtime_windows.required_binaries == ("qemu-img.exe", "qemu-system-x86_64.exe")
 
         try:

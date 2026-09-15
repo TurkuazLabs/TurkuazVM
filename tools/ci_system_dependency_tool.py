@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/tools/ci_system_dependency_tool.py
 # 📌 Amac: CI sistem bagimliliklarini config profiline gore kurar ve sonraki GitHub Actions adimlari icin PATH export eder
 # 📌 Modul - Python
-# Version: 1.0.0
-# Aciklama: Paket yoneticisi komutlarini merkezi configden uretir, host platformunu dogrular ve gerekli binaryleri fail-closed kontrol eder
+# Version: 1.0.1
+# Aciklama: Paket yoneticisi komutlarini merkezi configden uretir, host platformunu dogrular, Windows ortam degiskenlerini case-insensitive cozer ve gerekli binaryleri fail-closed kontrol eder
 # Bagimli Oldugu Katman: Tool
 
 from __future__ import annotations
@@ -116,7 +116,7 @@ class CiSystemDependencyTool:
     def _export_paths(self, paths: Sequence[Path]) -> None:
         if not paths:
             return
-        github_path = self.environ.get(GITHUB_PATH_ENV)
+        github_path = self._environment_value(GITHUB_PATH_ENV)
         if not github_path:
             raise CiSystemDependencyError("CI_DEP_GITHUB_PATH_MISSING GITHUB_PATH is required for path exports")
 
@@ -133,7 +133,7 @@ class CiSystemDependencyTool:
                 stream.write(value + "\n")
 
     def _verify_binaries(self, binaries: Sequence[str], exported_paths: Sequence[Path]) -> None:
-        search_path = self.environ.get(PATH_ENV, "")
+        search_path = self._environment_value(PATH_ENV) or ""
         if exported_paths:
             search_path = os.pathsep.join([*(str(path) for path in exported_paths), search_path])
         missing = [binary for binary in binaries if shutil.which(binary, path=search_path) is None]
@@ -147,10 +147,21 @@ class CiSystemDependencyTool:
                 f"CI_DEP_COMMAND_FAILED exit={completed.returncode} command={' '.join(command)}"
             )
 
+    def _environment_value(self, name: str) -> str | None:
+        direct = self.environ.get(name)
+        if direct is not None:
+            return direct
+        folded_name = name.casefold()
+        for key, value in self.environ.items():
+            if key.casefold() == folded_name:
+                return value
+        return None
+
     def _expand_environment(self, value: str) -> str:
         def replace_windows(match: re.Match[str]) -> str:
             name = match.group(1)
-            return self.environ.get(name, match.group(0))
+            resolved = self._environment_value(name)
+            return match.group(0) if resolved is None else resolved
 
         expanded = WINDOWS_ENV_PATTERN.sub(replace_windows, value)
         for name, env_value in self.environ.items():
