@@ -1,0 +1,55 @@
+# 📄 Dosya Yolu: /turkuazvm/.github/ISSUE_TEMPLATE/feature_request.yml
+# 📌 Amac: TurkuazVM yeni ozellik taleplerini mimari ve kullanim ihtiyaci ile toplar
+# 📌 Modul - YAML
+# Version: 1.0.0
+# Aciklama: Problem, cozum hedefi, katman etkisi ve geriye uyumluluk bilgisini standartlastirir
+# Bagimli Oldugu Katman: Config | View
+
+name: Feature request
+description: Yeni ozellik veya gelistirme talebi olustur
+title: "[FEAT] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Hangi kullanim problemini cozmek istiyorsunuz?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Onerilen cozum
+      description: Beklenen davranisi ve kullanici akisini aciklayin.
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Ana etkilenen katman
+      options:
+        - Controller
+        - Service
+        - Repo veya Model
+        - Tool
+        - View
+        - Language veya Config
+        - Birden fazla katman
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Uyumluluk etkisi
+      description: Breaking change, migration veya release notu gereksinimini yazin.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Kontrol
+      options:
+        - label: Benzer issue veya PR aradim.
+          required: true
+        - label: Oneri mevcut layered architecture akisina uyuyor.
+          required: true

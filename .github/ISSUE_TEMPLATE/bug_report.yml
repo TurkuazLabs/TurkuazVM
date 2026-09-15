@@ -1,0 +1,64 @@
+# 📄 Dosya Yolu: /turkuazvm/.github/ISSUE_TEMPLATE/bug_report.yml
+# 📌 Amac: TurkuazVM bug bildirimlerini tekrar edilebilir teknik veriyle toplar
+# 📌 Modul - YAML
+# Version: 1.0.0
+# Aciklama: Surum, platform, tekrar adimlari, beklenen davranis ve log alanlarini standartlastirir
+# Bagimli Oldugu Katman: Config | View
+
+name: Bug report
+description: Tekrar edilebilir bir TurkuazVM hatasi bildir
+title: "[BUG] "
+labels:
+  - bug
+body:
+  - type: input
+    id: version
+    attributes:
+      label: TurkuazVM surumu
+      placeholder: "0.41.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Host platform
+      options:
+        - Windows
+        - Linux
+        - Diger
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Tekrar adimlari
+      description: Hatayi tekrar etmek icin gereken adimlari sirali yazin.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Beklenen davranis
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Gercek davranis
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log ve kanit
+      description: Secret, token, parola veya gercek kullanici verisi eklemeyin.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Kontrol
+      options:
+        - label: Ayni hata icin mevcut issue aradim.
+          required: true
+        - label: Hassas veri paylasmadim.
+          required: true
