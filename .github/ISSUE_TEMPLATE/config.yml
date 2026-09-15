@@ -1,0 +1,9 @@
+# 📄 Dosya Yolu: /turkuazvm/.github/ISSUE_TEMPLATE/config.yml
+# 📌 Amac: GitHub issue template secim davranisini merkezi olarak tanimlar
+# 📌 Modul - YAML
+# Version: 1.0.0
+# Aciklama: Bos issue acmayi kapatir ve kullaniciyi tanimli issue formlarina yonlendirir
+# Bagimli Oldugu Katman: Config
+
+blank_issues_enabled: false
+contact_links: []

@@ -1,0 +1,14 @@
+# 📄 Dosya Yolu: /turkuazvm/.github/CODEOWNERS
+# 📌 Amac: Kritik kaynak alanlari icin varsayilan kod sahipligini tanimlar
+# 📌 Modul - Config
+# Version: 1.0.0
+# Aciklama: Tum repo, CI, release ve guvenlik dosyalari icin inceleme sorumlulugunu merkezilestirir
+# Bagimli Oldugu Katman: Config
+
+* @b1glord
+/.github/ @b1glord
+/config/ @b1glord
+/scripts/ @b1glord
+/tools/ @b1glord
+/apps/ @b1glord
+/crates/ @b1glord
