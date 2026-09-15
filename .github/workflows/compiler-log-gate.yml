@@ -1,7 +1,7 @@
 # 📄 Dosya Yolu: /turkuazvm/.github/workflows/compiler-log-gate.yml
 # 📌 Amac: Config kaynakli Windows/Linux Cargo compiler evidence zincirini calistirir ve sifir-hata gate uygular
 # 📌 Modul - YAML
-# Version: 0.28.0
+# Version: 0.28.1
 # Aciklama: Matrix, toolchain ve retention configden uretilir; artifact eksikliginde aggregate gate yine structured BLOCKED sonucu yazar
 # Bagimli Oldugu Katman: Tool | View
 
@@ -44,6 +44,9 @@ jobs:
           python-version: "3.12"
       - name: Install CI policy dependency
         run: python -m pip install --disable-pip-version-check -r config/requirements-ci.txt
+      - name: Prepare compiler host system dependencies
+        if: matrix.platform == 'linux'
+        run: python tools/ci_system_dependency_tool.py --profile compiler-linux
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ needs.policy.outputs.rust_toolchain }}

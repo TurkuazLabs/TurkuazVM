@@ -1,0 +1,68 @@
+# 📄 Dosya Yolu: /turkuazvm/config/ci-system-dependencies.yml
+# 📌 Amac: GitHub Actions host sistem bagimliliklarini merkezi ve platform bazli tanimlar
+# 📌 Modul - YAML
+# Version: 1.0.0
+# Aciklama: Compiler ve runtime validation CI profilleri icin paket yoneticisi, paket ve PATH export kurallarini tutar
+# Bagimli Oldugu Katman: Tool
+
+schema: 1
+version: "1.0.0"
+ci_system_dependencies:
+  installers:
+    apt:
+      update_command:
+        - sudo
+        - apt-get
+        - update
+      install_command:
+        - sudo
+        - apt-get
+        - install
+        - -y
+    chocolatey:
+      install_command:
+        - choco
+        - install
+      install_arguments:
+        - --no-progress
+        - -y
+
+  profiles:
+    compiler-linux:
+      host_platform: linux
+      installer: apt
+      packages:
+        - libwebkit2gtk-4.1-dev
+        - build-essential
+        - curl
+        - wget
+        - file
+        - libxdo-dev
+        - libssl-dev
+        - libayatana-appindicator3-dev
+        - librsvg2-dev
+      required_binaries:
+        - pkg-config
+      path_exports: []
+
+    runtime-linux:
+      host_platform: linux
+      installer: apt
+      packages:
+        - qemu-utils
+        - qemu-system-x86
+      required_binaries:
+        - qemu-img
+        - qemu-system-x86_64
+      path_exports: []
+
+    runtime-windows:
+      host_platform: windows
+      installer: chocolatey
+      packages:
+        - qemu
+      required_binaries:
+        - qemu-img.exe
+        - qemu-system-x86_64.exe
+      path_exports:
+        - "%ProgramFiles%\\qemu"
