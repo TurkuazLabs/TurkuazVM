@@ -1,7 +1,7 @@
 # 📄 Dosya Yolu: /turkuazvm/config/ci-system-dependencies.yml
 # 📌 Amac: GitHub Actions host sistem bagimliliklarini merkezi ve platform bazli tanimlar
 # 📌 Modul - YAML
-# Version: 1.0.0
+# Version: 1.0.1
 # Aciklama: Compiler ve runtime validation CI profilleri icin paket yoneticisi, paket ve PATH export kurallarini tutar
 # Bagimli Oldugu Katman: Tool
 
@@ -41,6 +41,7 @@ ci_system_dependencies:
         - libssl-dev
         - libayatana-appindicator3-dev
         - librsvg2-dev
+        - libudev-dev
       required_binaries:
         - pkg-config
       path_exports: []
