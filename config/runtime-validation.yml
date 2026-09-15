@@ -1,0 +1,204 @@
+# 📄 Dosya Yolu: /turkuazvm/config/runtime-validation.yml
+# 📌 Amac: L runtime validation harness icin gercek arac, fixture, evidence ve production gate kurallarini merkezi olarak tanimlar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: QEMU ve guest integration gercek testlerini fail-closed calistiran validation harness configidir
+# Bagimli Oldugu Katman: Controller | Service | Repo | Tool | View | Language
+
+schema: 1
+version: "0.15.0"
+runtime_validation:
+  base_runtime_config: config/host-resilience-runtime.yml
+
+  workspace:
+    root: .turkuazvm/runtime-validation
+    sessions_directory: sessions
+    fixtures_directory: fixtures
+    source_fixture_file: base.raw
+    overlay_fixture_file: rescue.qcow2
+    evidence_directory: artifacts/runtime-validation
+    evidence_file: runtime-validation-evidence.yml
+    summary_file: runtime-validation-summary.yml
+
+  binaries:
+    qemu_img: qemu-img
+    qemu_system:
+      x86_64: qemu-system-x86_64
+      aarch64: qemu-system-aarch64
+    virtiofsd: virtiofsd
+    swtpm: swtpm
+    guest_bridge_cli: turkuazvm-guest-bridge
+    secret_rewrap_cli: turkuazvm-secret-rewrap
+
+  command:
+    probe_timeout_seconds: 10
+    test_timeout_seconds: 45
+    process_start_timeout_seconds: 10
+    process_stop_timeout_seconds: 5
+    max_output_bytes: 1048576
+
+  host:
+    platforms:
+      linux: linux
+      windows: windows
+      darwin: macos
+    architecture_aliases:
+      x86_64:
+        - x86_64
+        - amd64
+      aarch64:
+        - aarch64
+        - arm64
+
+  qemu_img:
+    fixture_format: raw
+    fixture_size: 16M
+    overlay_format: qcow2
+    backing_format_option: -F
+    backing_file_option: -b
+    source_hash_algorithm: sha256
+    expected_overlay_backing_format: raw
+    info_keys:
+      format: format
+      backing_filename: backing-filename
+      backing_format: backing-filename-format
+
+  qmp:
+    transport: tcp
+    bind_host: 127.0.0.1
+    query_status_command: query-status
+    query_schema_command: query-qmp-schema
+    required_schema_commands:
+      - query-status
+      - query-qmp-schema
+    launch_arguments:
+      - -machine
+      - none
+      - -nodefaults
+      - -display
+      - none
+      - -monitor
+      - none
+      - -serial
+      - none
+      - -S
+    endpoint_template: tcp:{host}:{port},server=on,wait=off
+    client_endpoint_template: tcp://{host}:{port}
+
+  modes:
+    smoke: smoke
+    production: production
+
+  size_units:
+    K: 1024
+    M: 1048576
+    G: 1073741824
+
+  test_ids:
+    qemu_img: qemu_img_overlay_real
+    qmp_control_plane: qmp_control_plane_real
+
+  required_tests:
+    production:
+      - qemu_img_overlay_real
+      - qmp_control_plane_real
+      - host_move_windows
+      - host_move_linux
+      - nvram_recovery_boot
+      - vtpm_recovery_boot
+      - secure_store_rewrap
+      - qmp_device_deleted_real
+      - qmp_guest_unplug_error_real
+      - linux_passt_rescue_real
+      - linux_passt_to_user_failover_real
+      - windows_user_rescue_real
+      - guest_soft_renew_verify_real
+      - tvgb_drag_drop_resume_real
+      - tvgb_hash_mismatch_real
+      - tvgb_overwrite_reject_real
+      - linux_virtiofs_read_only_real
+      - windows_virtiofs_mount_real
+    harness_smoke:
+      - qemu_img_overlay_real
+      - qmp_control_plane_real
+
+  fixture_requirements:
+    host_move_windows:
+      - external_windows_host_pair
+    host_move_linux:
+      - external_linux_host_pair
+    nvram_recovery_boot:
+      - bootable_guest_fixture
+      - uefi_firmware
+    vtpm_recovery_boot:
+      - bootable_guest_fixture
+      - swtpm
+    secure_store_rewrap:
+      - source_secure_store
+      - destination_secure_store
+    qmp_device_deleted_real:
+      - bootable_guest_fixture
+      - guest_hotplug_support
+    qmp_guest_unplug_error_real:
+      - bootable_guest_fixture
+      - guest_hotplug_reject_fixture
+    linux_passt_rescue_real:
+      - linux_guest_fixture
+      - passt
+    linux_passt_to_user_failover_real:
+      - linux_guest_fixture
+      - passt
+      - network_fault_injector
+    windows_user_rescue_real:
+      - windows_guest_fixture
+    guest_soft_renew_verify_real:
+      - guest_bridge_cli
+      - bootable_guest_fixture
+    tvgb_drag_drop_resume_real:
+      - guest_bridge_cli
+      - bootable_guest_fixture
+    tvgb_hash_mismatch_real:
+      - guest_bridge_cli
+      - bootable_guest_fixture
+    tvgb_overwrite_reject_real:
+      - guest_bridge_cli
+      - bootable_guest_fixture
+    linux_virtiofs_read_only_real:
+      - linux_guest_fixture
+      - virtiofsd
+    windows_virtiofs_mount_real:
+      - windows_guest_fixture
+      - virtiofsd
+      - winfsp_core
+      - virtiofs_driver
+      - virtiofs_service
+
+  statuses:
+    pass: PASS
+    fail: FAIL
+    blocked_missing_dependency: BLOCKED_MISSING_DEPENDENCY
+    blocked_fixture_required: BLOCKED_FIXTURE_REQUIRED
+    blocked_unsupported_host: BLOCKED_UNSUPPORTED_HOST
+    not_run: NOT_RUN
+
+  exit_codes:
+    pass: 0
+    blocked: 3
+
+  status_codes:
+    pass: TVM-L-000
+    config_missing: TVM-L-101
+    config_invalid: TVM-L-102
+    dependency_missing: TVM-L-103
+    evidence_invalid: TVM-L-104
+    fixture_invalid: TVM-L-105
+    qemu_img_real_failed: TVM-L-201
+    source_mutation_detected: TVM-L-202
+    backing_chain_invalid: TVM-L-203
+    qmp_launch_failed: TVM-L-301
+    qmp_probe_failed: TVM-L-302
+    qmp_schema_invalid: TVM-L-303
+    process_cleanup_failed: TVM-L-304
+    runtime_fixture_required: TVM-L-401
+    unsupported_host: TVM-L-402
+    production_blocked: TVM-L-501

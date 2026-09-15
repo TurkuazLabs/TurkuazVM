@@ -1,0 +1,14 @@
+# 📄 Dosya Yolu: /turkuazvm/packages/guest-agent/manifest.example.yml
+# 📌 Amac: Signed Android Guest Agent update manifest schema 2 ornegini tanimlar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: APK SHA-256, Android signing-certificate SHA-256 ve Ed25519 detached signature alanlarini gosterir
+# Bagimli Oldugu Katman: Service | Tool
+
+schema_version: 2
+package_name: com.turkuazvm.inputagent
+version_code: 2101
+apk_file: TurkuazInputAgent.apk
+sha256: 0000000000000000000000000000000000000000000000000000000000000000
+apk_signing_cert_sha256: 0000000000000000000000000000000000000000000000000000000000000000
+signature_hex: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

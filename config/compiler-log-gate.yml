@@ -1,0 +1,85 @@
+# 📄 Dosya Yolu: /turkuazvm/config/compiler-log-gate.yml
+# 📌 Amac: Compiler evidence pipeline icin tek runtime politika kaynagini tanimlar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Platform, Cargo komutu, artifact yolu, provenance, dedupe ve fail-closed status kodlarini merkezi tutar
+# Bagimli Oldugu Katman: Tool | View
+
+schema: 2
+version: "0.13.2"
+compiler_log_gate:
+  runtime:
+    rust_toolchain: "1.98.0"
+    artifact_retention_days: 14
+  required_platforms:
+    - linux
+    - windows
+  platforms:
+    linux:
+      runner: ubuntu-latest
+      host_os: Linux
+    windows:
+      runner: windows-latest
+      host_os: Windows
+  cargo_command:
+    - check
+    - --workspace
+    - --all-targets
+    - --message-format=json
+  artifacts:
+    raw_root: artifacts/compiler
+    normalized_root: artifacts/compiler-normalized
+    gate_summary: artifacts/compiler-gate-summary.json
+    downloaded_root: downloaded-compiler
+    artifact_name_prefix: compiler-
+    raw_log: cargo-check.jsonl
+    stderr_log: cargo-stderr.log
+    collector_metadata: collector-meta.json
+    normalized_errors: errors.json
+    normalized_summary: summary.json
+  validation:
+    normalized_schema: 2
+    max_unique_errors: 0
+    require_raw_log: true
+    require_valid_json: true
+    require_platform_identity: true
+    require_collector_status_pass: true
+    require_cargo_exit_zero: true
+    require_same_git_head: true
+    require_same_rustc_version: true
+    require_configured_rust_toolchain: true
+    require_nonempty_raw_when_cargo_success: true
+    require_upstream_jobs_success: true
+    fingerprint_fields:
+      - code
+      - file
+      - line
+      - column
+      - message
+      - crate
+  status_codes:
+    pass: CI-I-000
+    config_missing: CI-I-101
+    config_invalid: CI-I-102
+    platform_invalid: CI-I-103
+    cargo_missing: CI-I-111
+    rustc_missing: CI-I-112
+    cargo_failed_with_log: CI-I-113
+    log_write_failed: CI-I-114
+    host_mismatch: CI-I-115
+    provenance_unavailable: CI-I-116
+    raw_log_missing: CI-I-201
+    invalid_json: CI-I-202
+    metadata_missing: CI-I-203
+    metadata_invalid: CI-I-204
+    platform_missing: CI-I-301
+    normalized_summary_invalid: CI-I-302
+    collector_failed: CI-I-303
+    cargo_failed: CI-I-304
+    errors_payload_invalid: CI-I-305
+    fingerprint_invalid: CI-I-306
+    compiler_errors_present: CI-I-307
+    provenance_mismatch: CI-I-308
+    toolchain_mismatch: CI-I-309
+    platform_identity_mismatch: CI-I-310
+    upstream_job_failed: CI-I-311

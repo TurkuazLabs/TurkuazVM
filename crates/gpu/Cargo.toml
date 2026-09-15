@@ -1,0 +1,16 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/gpu/Cargo.toml
+# 📌 Amac: Gaming GPU domain, port ve service crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Host ve hypervisor GPU capability bilgisini QEMU/platform adapterlerinden ayirir
+# Bagimli Oldugu Katman: Service | Tool
+
+[package]
+name = "turkuazvm-gpu"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true

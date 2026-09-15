@@ -1,0 +1,11 @@
+<!--
+# 📄 Dosya Yolu: /turkuazvm/guest/android-agent/res/values/strings.xml
+# 📌 Amac: Turkuaz Input Agent kullaniciya gorunen metinlerini tanimlar
+# 📌 Modul - XML
+# Version: 0.12.4
+# Aciklama: Accessibility service label ve aciklamasini merkezi resource olarak tutar
+# Bagimli Oldugu Katman: Language | View
+-->
+<resources>
+    <string name="service_description">TurkuazVM persistent multi-touch input bridge</string>
+</resources>

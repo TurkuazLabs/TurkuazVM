@@ -1,0 +1,22 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/platform/Cargo.toml
+# 📌 Amac: Host platform adapter crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Windows/Linux host/GPU bilgisini ve network runtime islemlerini core portlarina adapte eder
+# Bagimli Oldugu Katman: Tool
+
+[package]
+name = "turkuazvm-platform"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_yaml_ng.workspace = true
+turkuazvm-core = { path = "../core" }
+turkuazvm-gpu = { path = "../gpu" }
+
+[lints]
+workspace = true

@@ -1,0 +1,18 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/android/Cargo.toml
+# 📌 Amac: Android Runtime bounded context crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Android domain, command, port ve service katmanlarini QEMU ve ADB detaylarindan bagimsiz toplar
+# Bagimli Oldugu Katman: Service | Repo | Tool
+
+[package]
+name = "turkuazvm-android"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

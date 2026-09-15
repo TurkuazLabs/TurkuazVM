@@ -1,0 +1,8 @@
+# 📄 Dosya Yolu: /turkuazvm/config/requirements-runtime-validation.txt
+# 📌 Amac: L runtime validation harness Python bagimliliklarini merkezi olarak tanimlar
+# 📌 Modul - TXT
+# Version: 0.28.0
+# Aciklama: Runtime validation config ve evidence YAML islemleri icin gereken minimum paketi sabitler
+# Bagimli Oldugu Katman: Tool
+
+PyYAML>=6.0.2,<7

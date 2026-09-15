@@ -1,0 +1,212 @@
+# 📄 Dosya Yolu: /turkuazvm/config/turkuazvm.desktop-remote.example.yml
+# 📌 Amac: Windows Desktop'tan local ve uzak Linux Engine profilleri arasinda gecis ornegi saglar
+# 📌 Modul - YAML
+# Version: 0.40.0
+# Aciklama: Local auto-start, portable QEMU Turkuaz NAT ve TLS/token korumali remote host profilini ayni Desktop config'inde tanimlar
+# Bagimli Oldugu Katman: Service | Tool | View
+
+schema_version: 22
+host:
+  id: local
+  label: Local Host
+
+
+downloads:
+  sources_path: config/download-sources.yml
+  http:
+    curl_binary: curl
+    connect_timeout_seconds: 30
+    retry_count: 4
+    retry_delay_seconds: 2
+
+storage:
+  data_root: ./data
+  default_disk:
+    format: qcow2
+    bus: virtio
+    size_gib: 64
+  portable_image:
+    extension: .tvmimg
+    container: zip64
+    private_copy_default: true
+
+artifact_cache:
+  enabled: true
+  quota_gib: 100
+  verify_on_hit: true
+  mutable:
+    allow_stale_on_transient_error: true
+    revalidation_timeout_seconds: 30
+    require_https: true
+    allow_private_networks: false
+    max_redirects: 5
+  downloader:
+    retry_count: 4
+    retry_delay_seconds: 2
+    connect_timeout_seconds: 30
+
+engine_api:
+  bind_ip: 127.0.0.1
+  port: 49780
+  request_timeout_ms: 2000
+  authentication:
+    mode: none
+    token_file: ""
+  tls:
+    enabled: false
+    certificate_path: ""
+    private_key_path: ""
+
+desktop:
+  display_executable_path: target/debug/turkuazvm-display
+  refresh_interval_ms: 1500
+  active_host: local
+  hosts:
+    - id: local
+      label: Local Windows
+      mode: local
+      host: 127.0.0.1
+      port: 49780
+      auto_start: true
+      executable_path: target/debug/turkuazvm-engine
+      startup_timeout_ms: 8000
+      startup_poll_interval_ms: 100
+      request_timeout_ms: 1500
+      long_request_timeout_ms: 180000
+      authentication:
+        mode: none
+        token_file: ""
+      tls:
+        enabled: false
+        ca_certificate_path: ""
+        server_name: ""
+    - id: linux-lab
+      label: Linux Lab
+      mode: remote
+      host: 192.168.1.50
+      port: 49780
+      auto_start: false
+      executable_path: ""
+      startup_timeout_ms: 8000
+      startup_poll_interval_ms: 100
+      request_timeout_ms: 3000
+      long_request_timeout_ms: 180000
+      authentication:
+        mode: token
+        token_file: secrets/linux-lab-token.txt
+      tls:
+        enabled: true
+        ca_certificate_path: secrets/linux-lab-ca.pem
+        server_name: turkuazvm-engine
+
+qmp:
+  bind_ip: 127.0.0.1
+  connect_timeout_ms: 1000
+  read_timeout_ms: 2000
+  write_timeout_ms: 2000
+  startup_timeout_ms: 10000
+  startup_poll_interval_ms: 100
+  shutdown_timeout_ms: 5000
+  shutdown_poll_interval_ms: 100
+
+runtime:
+  display_mode: native_rfb
+  rfb_bind_ip: 127.0.0.1
+  rfb_display_min: 10
+  rfb_display_max: 99
+  maintenance_interval_ms: 250
+  recovery:
+    auto_restart: true
+    retry_delay_ms: 5000
+    max_attempts: 3
+    journal_retention: 2048
+
+guest:
+  installer_media_relative_path: media/installer.iso
+  firmware:
+    uefi:
+      enabled: false
+      code_source_path: ""
+      vars_template_source_path: ""
+      code_relative_path: firmware/OVMF_CODE.fd
+      vars_relative_path: firmware/OVMF_VARS.fd
+
+# Gaming GPU policy. gfxstream is experimental and requires explicit opt-in.
+gpu:
+  mode: auto
+  hostmem_mib: 1024
+  allow_experimental_android_gfxstream: false
+
+android:
+  package_root: ./packages
+  image:
+    source_root: ""
+    build_script: guest/android-image/scripts/build_turkuaz_android_image.sh
+    distribution:
+      minimum_free_disk_gib: 32
+  adb:
+    binary_path: ""
+    host_ip: 127.0.0.1
+    host_port_min: 5600
+    host_port_max: 5699
+    guest_port: 5555
+    command_timeout_ms: 5000
+    ready_timeout_ms: 90000
+    ready_poll_interval_ms: 250
+  guest_agent:
+    host_ip: 127.0.0.1
+    host_port_min: 5700
+    host_port_max: 5799
+    guest_port: 5566
+    connect_timeout_ms: 500
+    io_timeout_ms: 500
+    ready_timeout_ms: 30000
+    ready_poll_interval_ms: 250
+    secret_root: ./data/secrets/guest-agent
+    require_adb_root_for_provisioning: true
+    update:
+      enabled: false
+      manifest_path: ./packages/guest-agent/manifest.yml
+      trusted_public_key_hex: ""
+      trusted_apk_cert_sha256: ""
+      apksigner_path: ""
+      rollback_root: ./data/guest-agent-rollbacks
+  default_device:
+    width: 1920
+    height: 1080
+    density_dpi: 320
+    target_fps: 60
+
+game_catalog:
+  path: config/game-catalog.yml
+
+guest_catalog:
+  path: config/guest-catalog.yml
+
+network:
+  default_network_id: turkuaz-net-01
+  private_network_id: turkuaz-private-01
+  default_device_model: virtio_net_pci
+  default_profile: managed_nat
+  managed_nat:
+    subnet: 192.168.240.0
+    prefix_length: 24
+    gateway: 192.168.240.1
+    pool_start: 10
+    pool_end: 199
+    dns_servers:
+      - 1.1.1.1
+      - 8.8.8.8
+  private:
+    subnet: 192.168.241.0
+    prefix_length: 24
+    gateway: 192.168.241.1
+    pool_start: 10
+    pool_end: 199
+    dns_servers: []
+  linux:
+    bridge_helper_path: ""
+    allow_managed_tap: false
+  windows:
+    managed_helper_path: scripts/network_windows_managed.ps1
+    openvpn_package_id: ""

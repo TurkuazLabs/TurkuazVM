@@ -1,0 +1,48 @@
+# 📄 Dosya Yolu: /turkuazvm/language/en.yml
+# 📌 Amac: K host resilience runtime status kodlari icin English UI mesajlarini merkezi olarak tanimlar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: View layer messages are stored by status code without embedding text in Controller or Service logic
+# Bagimli Oldugu Katman: Language | View
+
+TVM-K-000: "Operation completed successfully."
+TVM-K-101: "Runtime config was not found."
+TVM-K-102: "Runtime config is invalid or inconsistent with policy."
+TVM-K-103: "A required runtime dependency is missing."
+TVM-K-104: "An unsafe external command was blocked."
+TVM-K-201: "Recovery workspace or source image is invalid."
+TVM-K-202: "Source image hash changed; operation was stopped."
+TVM-K-203: "Immutable rescue overlay could not be created."
+TVM-K-204: "Required sidecar inventory is missing."
+TVM-K-205: "Copying a host-bound secret sidecar was blocked."
+TVM-K-206: "Destination host secret rewrap was not completed."
+TVM-K-207: "Guest architecture is incompatible with automatic destination host rebind."
+TVM-K-301: "QMP endpoint connection failed."
+TVM-K-302: "QMP command failed."
+TVM-K-303: "QMP device deletion event timed out."
+TVM-K-304: "Network backend or device arguments were rejected by policy."
+TVM-K-305: "Network recovery attempt limit was exhausted."
+TVM-K-306: "Guest MAC change was blocked."
+TVM-K-401: "A required guest or host capability is missing."
+TVM-K-402: "Shared-folder host path is outside the allowlist."
+TVM-K-403: "VirtioFS daemon could not be started."
+TVM-K-404: "Windows VirtioFS runtime capability is not verified."
+TVM-K-405: "Drag-drop integrity or capability validation failed."
+TVM-K-501: "Real runtime tests are required for production."
+
+TVM-L-000: "Runtime validation completed successfully."
+TVM-L-101: "Runtime validation config is missing."
+TVM-L-102: "Runtime validation config is invalid."
+TVM-L-103: "A binary required for real runtime validation is missing."
+TVM-L-104: "Runtime validation evidence is invalid."
+TVM-L-105: "Runtime validation fixture is invalid."
+TVM-L-201: "Real qemu-img validation failed."
+TVM-L-202: "Real qemu-img validation modified the source fixture."
+TVM-L-203: "QEMU backing chain validation failed."
+TVM-L-301: "Real qemu-system process could not be started."
+TVM-L-302: "Real QMP control-plane validation failed."
+TVM-L-303: "QMP schema does not include the required capability types."
+TVM-L-304: "QEMU validation process could not be cleaned up safely."
+TVM-L-401: "Production runtime validation requires a real guest or host fixture."
+TVM-L-402: "This host is unsupported for the requested runtime validation."
+TVM-L-501: "Production release is blocked until real runtime validation passes."

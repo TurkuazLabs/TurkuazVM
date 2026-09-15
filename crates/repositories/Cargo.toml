@@ -1,0 +1,29 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/repositories/Cargo.toml
+# 📌 Amac: TurkuazVM repository adapter crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.40.0
+# Aciklama: Core ve Android repository portlari icin YAML persistence adapterlerini barindirir
+# Bagimli Oldugu Katman: Repo
+
+[package]
+name = "turkuazvm-repositories"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+fs2.workspace = true
+sha2.workspace = true
+serde.workspace = true
+serde_yaml_ng.workspace = true
+turkuazvm-artifact-cache = { path = "../artifact-cache" }
+turkuazvm-android = { path = "../android" }
+turkuazvm-android-image = { path = "../android-image" }
+turkuazvm-core = { path = "../core" }
+turkuazvm-gaming-input = { path = "../gaming-input" }
+turkuazvm-game-catalog = { path = "../game-catalog" }
+turkuazvm-guest-catalog = { path = "../guest-catalog" }
+
+[lints]
+workspace = true

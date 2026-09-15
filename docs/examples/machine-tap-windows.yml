@@ -1,0 +1,31 @@
+# 📄 Dosya Yolu: /turkuazvm/docs/examples/machine-tap-windows.yml
+# 📌 Amac: Windows hostta existing TAP kullanan machine.yml schema version 5 ornegini saglar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Onceden kurulmus TurkuazVM TAP adapterini bridge mode icin secer
+# Bagimli Oldugu Katman: Repo
+
+schema_version: 6
+vm:
+  id: windows-tap-demo
+  name: Windows TAP Demo
+  vcpu_count: 4
+  memory_mib: 4096
+  acceleration: whpx
+  state: stopped
+  last_failure: null
+storage:
+  disks: []
+network:
+  adapters:
+    - id: lan
+      mode: bridge
+      device_model: e1000
+      mac_address: null
+      port_forwards: []
+      bridge:
+        bridge_name: null
+        tap_name: "TurkuazVM TAP"
+guest: null
+snapshots:
+  records: []

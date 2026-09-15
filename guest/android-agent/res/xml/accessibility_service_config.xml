@@ -1,0 +1,14 @@
+<!--
+# 📄 Dosya Yolu: /turkuazvm/guest/android-agent/res/xml/accessibility_service_config.xml
+# 📌 Amac: Turkuaz Input Agent gesture dispatch accessibility yeteneklerini tanimlar
+# 📌 Modul - XML
+# Version: 0.12.4
+# Aciklama: Ekran gesture injection icin canPerformGestures capability'sini etkinlestirir
+# Bagimli Oldugu Katman: Service | Config
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeAllMask"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:canPerformGestures="true"
+    android:description="@string/service_description"
+    android:notificationTimeout="0" />

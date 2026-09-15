@@ -1,0 +1,216 @@
+# 📄 Dosya Yolu: /turkuazvm/config/host-resilience-runtime.yml
+# 📌 Amac: K runtime wiring icin merkezi komut, timeout, capability ve fail-closed davranislarini tanimlar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Image rescue, hardware rebind, QMP network recovery, VirtioFS ve TVGB runtime adaptor ayarlarini tek kaynakta toplar
+# Bagimli Oldugu Katman: Service | Repo | Tool | View | Language
+
+schema: 1
+version: "0.14.1"
+runtime:
+  policy:
+    host_resilience_path: config/host-resilience.yml
+
+  workspace:
+    root: .turkuazvm/recovery
+    state_file: session.yml
+    sidecar_directory: sidecars
+    rescue_disk_file: rescue.qcow2
+    qmp_socket_directory: qmp
+    virtiofs_socket_directory: virtiofs
+
+  binaries:
+    qemu_img: qemu-img
+    virtiofsd: virtiofsd
+    passt: passt
+    guest_bridge_cli: turkuazvm-guest-bridge
+    secret_rewrap_cli: turkuazvm-secret-rewrap
+
+  command:
+    default_timeout_seconds: 15
+    long_timeout_seconds: 120
+    max_output_bytes: 1048576
+
+  image:
+    overlay_format: qcow2
+    backing_format_option: -F
+    backing_file_option: -b
+    hash_algorithm: sha256
+    info_output: json
+    check_output: json
+    forbidden_mutating_subcommands:
+      - amend
+      - commit
+      - convert
+      - rebase
+      - resize
+      - snapshot
+    forbidden_repair_argument: -r
+
+  rebind:
+    source_inventory_roles:
+      - firmware_nvram
+      - tpm_state
+      - guest_identity_metadata
+    copied_sidecar_roles:
+      - firmware_nvram
+      - tpm_state
+      - guest_identity_metadata
+    forbidden_sidecar_roles:
+      - host_bound_secret_blob
+    destination_secret_rewrap_required: true
+    required_guest_profile_fields:
+      - firmware_mode
+      - disk_bus
+      - machine_profile
+      - architecture
+      - guest_identity
+    hardware_change_fields:
+      - platform
+      - machine
+      - architecture
+      - cpu_count
+      - memory_bytes
+
+  qmp:
+    connect_timeout_seconds: 5
+    command_timeout_seconds: 8
+    device_delete_event: DEVICE_DELETED
+    device_unplug_error_event: DEVICE_UNPLUG_GUEST_ERROR
+    schema_command: query-qmp-schema
+    net_client_driver_enum: NetClientDriver
+    response_return_key: return
+    response_error_key: error
+    greeting_key: QMP
+    capabilities_command: qmp_capabilities
+    network_commands:
+      set_link: set_link
+      netdev_add: netdev_add
+      netdev_del: netdev_del
+      device_add: device_add
+      device_del: device_del
+    allowed_backend_argument_keys:
+      user:
+        - ipv4
+        - ipv6
+        - restrict
+        - hostname
+        - domainname
+        - dns
+        - dns6
+        - dnssearch
+      passt:
+        - path
+        - quiet
+        - vhost-user
+        - mtu
+        - address
+        - netmask
+        - mac
+        - gateway
+        - interface
+        - outbound
+        - outbound-if4
+        - outbound-if6
+        - dns
+        - search
+        - fqdn
+        - dhcp-dns
+        - dhcp-search
+        - map-host-loopback
+    forbidden_backend_argument_keys:
+      - hostfwd
+      - guestfwd
+      - smb
+      - smbserver
+      - tftp
+      - bootfile
+    allowed_device_argument_keys:
+      - bus
+      - addr
+      - vectors
+      - mq
+      - queues
+      - disable-legacy
+      - disable-modern
+
+  network:
+    max_runtime_attempts: 4
+    soft_renew_operation: network-soft-renew
+    verify_operation: network-verify
+    reconnect_delay_ms: 250
+    allowed_nic_drivers:
+      - virtio-net-pci
+      - e1000e
+      - e1000
+      - rtl8139
+    platform_names:
+      linux: linux
+      windows: windows
+      darwin: macos
+
+  virtiofs:
+    linux_host_required_binaries:
+      - virtiofsd
+    windows_guest_required_capabilities:
+      - virtiofs_driver
+      - virtiofs_service
+      - winfsp_core
+    linux_guest_required_capabilities:
+      - virtiofs
+    socket_suffix: .sock
+    tag_prefix: tvmshare
+    daemon_flags:
+      socket_path: --socket-path
+      shared_dir: --shared-dir
+      read_only: --readonly
+      sandbox: --sandbox
+    sandbox_mode: chroot
+    startup_timeout_seconds: 5
+    terminate_timeout_seconds: 5
+    default_read_only: true
+
+  drag_drop:
+    send_operation: send-file
+    capabilities_operation: capabilities
+    required_capabilities:
+      - authenticated_file_transfer
+      - resume
+      - sha256
+      - overwrite_reject
+    cli_flags:
+      operation: --operation
+      source: --source
+      destination: --destination
+      sha256: --sha256
+      resume: --resume
+      overwrite: --overwrite
+    resume_value: required
+    overwrite_value: reject
+    max_relative_destination_length: 512
+
+  status_codes:
+    pass: TVM-K-000
+    config_missing: TVM-K-101
+    config_invalid: TVM-K-102
+    dependency_missing: TVM-K-103
+    unsafe_command_blocked: TVM-K-104
+    workspace_invalid: TVM-K-201
+    source_hash_changed: TVM-K-202
+    rescue_overlay_failed: TVM-K-203
+    sidecar_missing: TVM-K-204
+    forbidden_sidecar_copy: TVM-K-205
+    secret_rewrap_required: TVM-K-206
+    hardware_incompatible: TVM-K-207
+    qmp_connect_failed: TVM-K-301
+    qmp_command_failed: TVM-K-302
+    qmp_device_delete_timeout: TVM-K-303
+    network_arguments_rejected: TVM-K-304
+    network_attempts_exhausted: TVM-K-305
+    guest_mac_change_blocked: TVM-K-306
+    capability_missing: TVM-K-401
+    share_path_rejected: TVM-K-402
+    virtiofs_start_failed: TVM-K-403
+    windows_virtiofs_blocked: TVM-K-404
+    drag_drop_rejected: TVM-K-405
+    runtime_test_required: TVM-K-501

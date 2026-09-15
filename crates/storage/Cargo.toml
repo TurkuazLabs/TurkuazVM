@@ -1,0 +1,22 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/storage/Cargo.toml
+# 📌 Amac: TurkuazVM storage infrastructure adapter crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: qemu-img tabanli disk, snapshot, full clone ve linked clone adapterlerini barindirir
+# Bagimli Oldugu Katman: Tool
+
+[package]
+name = "turkuazvm-storage"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+fs2.workspace = true
+turkuazvm-core = { path = "../core" }
+
+[lints]
+workspace = true

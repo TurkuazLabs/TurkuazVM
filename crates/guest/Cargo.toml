@@ -1,0 +1,31 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/guest/Cargo.toml
+# 📌 Amac: Guest boot media, firmware ve Android bridge infrastructure adapter crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.40.0
+# Aciklama: ISO import, UEFI firmware preparation ve ADB runtime tool adapterlerini barindirir
+# Bagimli Oldugu Katman: Tool
+
+[package]
+name = "turkuazvm-guest"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+sha2.workspace = true
+serde.workspace = true
+serde_yaml_ng.workspace = true
+serde_json.workspace = true
+getrandom.workspace = true
+fs2.workspace = true
+ed25519-dalek.workspace = true
+turkuazvm-artifact-cache = { path = "../artifact-cache" }
+turkuazvm-android = { path = "../android" }
+turkuazvm-android-image = { path = "../android-image" }
+turkuazvm-core = { path = "../core" }
+turkuazvm-guest-agent-protocol = { path = "../guest-agent-protocol" }
+turkuazvm-guest-catalog = { path = "../guest-catalog" }
+
+[lints]
+workspace = true

@@ -1,0 +1,20 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/transport/Cargo.toml
+# 📌 Amac: TurkuazVM ortak transport ve TLS adapter crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Engine ve Desktop tarafinda ortak rustls tabanli TLS stream araclarini saglar
+# Bagimli Oldugu Katman: Tool
+
+[package]
+name = "turkuazvm-transport"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+rustls = { version = "=0.23.43", default-features = false, features = ["std", "ring", "tls12"] }
+rustls-pemfile = "=2.2.0"
+
+[lints]
+workspace = true

@@ -1,0 +1,25 @@
+# 📄 Dosya Yolu: /turkuazvm/apps/display/Cargo.toml
+# 📌 Amac: TurkuazDisplay native VM goruntu ve input process bagimliliklarini tanimlar
+# 📌 Modul - TOML
+# Version: 0.40.2
+# Aciklama: Winit native window, Softbuffer fallback renderer, RFB telemetri ve cached scaling adapterlerini ayri process olarak derler
+# Bagimli Oldugu Katman: Service | Tool | View
+
+[package]
+name = "turkuazvm-display"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde_json.workspace = true
+winit = "0.30.13"
+softbuffer = "0.4.8"
+gilrs = "0.11.2"
+turkuazvm-gaming-input = { path = "../../crates/gaming-input" }
+turkuazvm-engine-api = { path = "../../crates/engine-api" }
+
+[lints]
+workspace = true

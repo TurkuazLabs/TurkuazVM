@@ -1,0 +1,47 @@
+# 📄 Dosya Yolu: /turkuazvm/docs/examples/android-image.yml
+# 📌 Amac: Android image registry manifest schema version 2 icin ornek veri saglar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: READY stok Cuttlefish x86_64 image metadata, capability ve artifact fingerprint ornegini gosterir
+# Bagimli Oldugu Katman: Repo | Tool
+
+schema_version: 2
+id: turkuaz-android-x86_64
+name: Turkuaz Android Gaming x86_64
+architecture: x86_64
+source_track: latest_release
+product: turkuazvm_cf_x86_64_phone
+release_config: aosp_current
+variant: userdebug
+state: ready
+capabilities:
+  adb_tcp: true
+  guest_agent_included: false
+  persistent_multi_touch: false
+  native_x86_64: true
+  arm_translation: false
+source_revision: android-ci:12345678
+android_release: "17"
+sdk_level: 37
+artifacts:
+  - role: boot
+    relative_path: boot.img
+    size_bytes: 67108864
+    sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  - role: super
+    relative_path: super.img
+    size_bytes: 2147483648
+    sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  - role: userdata
+    relative_path: userdata.img
+    size_bytes: 4294967296
+    sha256: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  - role: bootloader
+    relative_path: bootloader.qemu
+    size_bytes: 4194304
+    sha256: dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+  - role: composite_disk
+    relative_path: composite.img
+    size_bytes: 8589934592
+    sha256: eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+last_error: null

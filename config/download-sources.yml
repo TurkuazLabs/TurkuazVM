@@ -1,0 +1,275 @@
+# 📄 Dosya Yolu: /turkuazvm/config/download-sources.yml
+# 📌 Amac: TurkuazVM Linux installer media, Android image ve source resolver kaynaklarini merkezi olarak tanimlar
+# 📌 Modul - YAML
+# Version: 0.40.13
+# Aciklama: Windows Android 10-17 icin resmi SDK System Image katalogunu ana kaynak, Android CI yolunu legacy fallback olarak tanimlar
+# Bagimli Oldugu Katman: Service | Repo | Tool | View
+
+schema_version: 5
+paths:
+  installer_media: ./data/installer-media
+  installer_media_source_cache: ./data/cache/installer-media-sources.yml
+  android_images: ./data/android-image-builds
+  artifact_cache: ./data/cache/artifacts
+  android_source_cache: ./data/cache/android-distribution-sources.yml
+  android_sdk_tools: ./data/tools/android-sdk
+sources:
+  linux_media:
+    use_catalog_fallback: true
+    providers:
+      ubuntu:
+        discovery_mode: directory_index
+        base_urls:
+          - https://releases.ubuntu.com
+        rules:
+          desktop_live:
+            index_path_templates:
+              - "{release_line}/"
+            filename_tokens:
+              - ubuntu-
+              - -desktop-amd64.iso
+            filename_excludes: []
+            checksum_strategy: fixed_name
+            checksum_value: SHA256SUMS
+            checksum_tokens: []
+          server_standard:
+            index_path_templates:
+              - "{release_line}/"
+            filename_tokens:
+              - ubuntu-
+              - -live-server-amd64.iso
+            filename_excludes: []
+            checksum_strategy: fixed_name
+            checksum_value: SHA256SUMS
+            checksum_tokens: []
+      debian:
+        discovery_mode: directory_index
+        base_urls:
+          - https://cdimage.debian.org
+        rules:
+          network_install:
+            index_path_templates:
+              - debian-cd/current/amd64/iso-cd/
+            filename_tokens:
+              - "debian-{release}."
+              - -amd64-netinst.iso
+            filename_excludes: []
+            checksum_strategy: fixed_name
+            checksum_value: SHA256SUMS
+            checksum_tokens: []
+          dvd:
+            index_path_templates:
+              - debian-cd/current/amd64/iso-dvd/
+            filename_tokens:
+              - "debian-{release}."
+              - -amd64-DVD-1.iso
+            filename_excludes: []
+            checksum_strategy: fixed_name
+            checksum_value: SHA256SUMS
+            checksum_tokens: []
+          desktop_live:
+            index_path_templates:
+              - debian-cd/current-live/amd64/iso-hybrid/
+            filename_tokens:
+              - "debian-live-{release}."
+              - -amd64-gnome.iso
+            filename_excludes: []
+            checksum_strategy: fixed_name
+            checksum_value: SHA256SUMS
+            checksum_tokens: []
+      fedora:
+        discovery_mode: directory_index
+        base_urls:
+          - https://dl.fedoraproject.org
+          - https://download-ib01.fedoraproject.org
+          - https://download-cc-rdu01.fedoraproject.org
+        rules:
+          desktop_live:
+            index_path_templates:
+              - pub/fedora/linux/releases/{release}/Workstation/x86_64/iso/
+            filename_tokens:
+              - Fedora-Workstation-Live-{release}-
+              - .x86_64.iso
+            filename_excludes:
+              - nightly
+              - rawhide
+              - .n.
+            checksum_strategy: discover
+            checksum_value: ""
+            checksum_tokens:
+              - Fedora-Workstation-{release}-
+              - -x86_64-CHECKSUM
+          network_install:
+            index_path_templates:
+              - pub/fedora/linux/releases/{release}/Server/x86_64/iso/
+            filename_tokens:
+              - Fedora-Server-netinst-x86_64-{release}-
+              - .iso
+            filename_excludes:
+              - nightly
+              - rawhide
+              - .n.
+            checksum_strategy: discover
+            checksum_value: ""
+            checksum_tokens:
+              - Fedora-Server-{release}-
+              - -x86_64-CHECKSUM
+          dvd:
+            index_path_templates:
+              - pub/fedora/linux/releases/{release}/Server/x86_64/iso/
+            filename_tokens:
+              - Fedora-Server-dvd-x86_64-{release}-
+              - .iso
+            filename_excludes:
+              - nightly
+              - rawhide
+              - .n.
+            checksum_strategy: discover
+            checksum_value: ""
+            checksum_tokens:
+              - Fedora-Server-{release}-
+              - -x86_64-CHECKSUM
+      rocky-linux:
+        discovery_mode: directory_index
+        base_urls:
+          - https://download.rockylinux.org/pub/rocky
+        rules:
+          boot:
+            index_path_templates:
+              - "{release}/isos/x86_64/"
+            filename_tokens:
+              - Rocky-{release}-latest-x86_64-boot.iso
+            filename_excludes: []
+            checksum_strategy: file_suffix
+            checksum_value: .CHECKSUM
+            checksum_tokens: []
+          minimal:
+            index_path_templates:
+              - "{release}/isos/x86_64/"
+            filename_tokens:
+              - Rocky-{release}-latest-x86_64-minimal.iso
+            filename_excludes: []
+            checksum_strategy: file_suffix
+            checksum_value: .CHECKSUM
+            checksum_tokens: []
+          dvd:
+            index_path_templates:
+              - "{release}/isos/x86_64/"
+            filename_tokens:
+              - Rocky-{release}-latest-x86_64-dvd.iso
+            filename_excludes: []
+            checksum_strategy: file_suffix
+            checksum_value: .CHECKSUM
+            checksum_tokens: []
+      linux-mint:
+        discovery_mode: official_page_mirrors
+        base_urls:
+          - https://linuxmint.com
+        rules:
+          desktop_live:
+            index_path_templates: []
+            filename_tokens:
+              - "linuxmint-{release}-cinnamon-64bit.iso"
+            filename_excludes:
+              - edge
+              - hwe
+            checksum_strategy: fixed_name
+            checksum_value: sha256sum.txt
+            checksum_tokens: []
+  android_release_policy:
+    "17": android_sdk
+    "16": android_sdk
+    "15": android_sdk
+    "14": android_sdk
+    "13": android_sdk
+    "12L": android_sdk
+    "12": android_sdk
+    "11": android_sdk
+    "10": android_sdk
+  android_sdk:
+    repository_base_url: https://dl.google.com/android/repository
+    package_index_url: https://dl.google.com/android/repository/repository2-1.xml
+    emulator_package_path: emulator
+    architecture: x86_64
+    emulator_console_port_min: 5554
+    emulator_console_port_max: 5680
+    variant_priority:
+      - default
+      - google_apis
+      - google_apis_playstore
+    system_image_indexes:
+      default: https://dl.google.com/android/repository/sys-img/android/sys-img2-1.xml
+      google_apis: https://dl.google.com/android/repository/sys-img/google_apis/sys-img2-1.xml
+      google_apis_playstore: https://dl.google.com/android/repository/sys-img/google_apis_playstore/sys-img2-1.xml
+    api_levels:
+      "10": 29
+      "11": 30
+      "12": 31
+      "12L": 32
+      "13": 33
+      "14": 34
+      "15": 35
+      "16": 36
+      "17": 37
+  android_ci:
+    base_url: https://ci.android.com
+    official_base_url: https://ci.android.com
+    use_official_fallback: true
+    default_branch: aosp-android-latest-release
+    default_target: aosp_cf_x86_64_only_phone-userdebug
+    branch_templates:
+      - aosp-android{release}-release
+      - aosp-android{release}-gsi
+    target_candidates:
+      - aosp_cf_x86_64_only_phone-userdebug
+      - aosp_cf_x86_64_only_phone-aosp_current-userdebug
+      - aosp_cf_x86_64_phone-userdebug
+      - aosp_cf_x86_64_phone-trunk_staging-userdebug
+    channels:
+      "17":
+        expected_sdk: 37
+        allow_device_bootloader_fallback: false
+        branch_hints:
+          - aosp-android-latest-release
+          - aosp-android17-release
+      "16":
+        expected_sdk: 36
+        allow_device_bootloader_fallback: false
+        branch_hints:
+          - aosp-android16-release
+          - aosp-android16-gsi
+      "15":
+        expected_sdk: 35
+        allow_device_bootloader_fallback: false
+        branch_hints:
+          - aosp-android15-release
+          - aosp-android15-gsi
+      "14":
+        expected_sdk: 34
+        allow_device_bootloader_fallback: false
+        branch_hints:
+          - aosp-android14-gsi
+          - aosp-android14-release
+      "13":
+        expected_sdk: 33
+        allow_device_bootloader_fallback: false
+        branch_hints:
+          - aosp-android13-gsi
+      "12L":
+        expected_sdk: 32
+        allow_device_bootloader_fallback: false
+        branch_hints:
+          - aosp-android12L-gsi
+          - aosp-android12L-release
+          - aosp-android12L-platform-release
+          - aosp-android12L-dev
+      "12":
+        expected_sdk: 31
+        allow_device_bootloader_fallback: false
+        branch_hints:
+          - aosp-android12-gsi
+      "11":
+        expected_sdk: 30
+        allow_device_bootloader_fallback: true
+        branch_hints:
+          - aosp-android11-gsi

@@ -1,0 +1,15 @@
+<!--
+# 📄 Dosya Yolu: /turkuazvm/guest/android-agent/res/values/config.xml
+# 📌 Amac: Turkuaz Input Agent protocol ve socket sabitlerini merkezi config resource olarak tanimlar
+# 📌 Modul - XML
+# Version: 0.18.0
+# Aciklama: Guest port, protocol version, max contact ve gesture frame suresini magic number olmadan saklar
+# Bagimli Oldugu Katman: Config | Service | Tool
+-->
+<resources>
+    <integer name="guest_agent_port">5566</integer>
+    <integer name="guest_agent_protocol_version">2</integer>
+    <integer name="guest_agent_max_contacts">10</integer>
+    <integer name="guest_agent_gesture_frame_ms">12</integer>
+    <integer name="guest_agent_max_clipboard_chars">262144</integer>
+</resources>

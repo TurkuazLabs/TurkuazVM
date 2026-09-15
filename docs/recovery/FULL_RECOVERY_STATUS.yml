@@ -1,0 +1,23 @@
+# 📄 Dosya Yolu: /turkuazvm/docs/recovery/FULL_RECOVERY_STATUS.yml
+# 📌 Amac: TurkuazVM FULL kaynak recovery tabaninin guncel durumunu makine-okunur olarak kaydeder
+# 📌 Modul - YAML
+# Version: 0.40.0
+# Aciklama: Tarihsel recovery tabanini aktif v0.40.0 source resolver release gate ve regression modeliyle birlikte ozetler
+# Bagimli Oldugu Katman: Service | Repo | Tool | View
+
+version: "0.40.0"
+package_kind: "FULL_SOURCE_RECOVERY_BASELINE"
+history:
+  original_known_working_version: "0.12.4"
+  recovered_runtime_layers: "PRESERVED"
+  detailed_legacy_evidence: "CHANGELOG.md"
+active_validation:
+  release_status: "RELEASE_STATUS_v0.40.0.yml"
+  runtime_validation_gate: "scripts/runtime_validation_gate.py"
+  full_recovery_gate: "scripts/full_recovery_gate.py"
+  regression_suite: "scripts/tests"
+  cargo_build: "REQUIRES_HOST_RUST_TOOLCHAIN"
+policy:
+  historical_root_artifacts: "REMOVED_FROM_ACTIVE_RELEASE_ROOT"
+  current_release_artifacts_only: true
+  production_claim: false

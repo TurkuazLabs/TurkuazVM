@@ -1,0 +1,16 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/game-catalog/Cargo.toml
+# 📌 Amac: Oyun katalogu ve compatibility bounded context bagimliliklarini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Oyun kimligi, package eslestirme, compatibility ve onerilen input/runtime presetlerini dis adapterlerden ayirir
+# Bagimli Oldugu Katman: Service | Repo | View
+
+[package]
+name = "turkuazvm-game-catalog"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true

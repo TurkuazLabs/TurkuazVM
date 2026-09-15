@@ -1,0 +1,52 @@
+# 📄 Dosya Yolu: /turkuazvm/docs/examples/machine.yml
+# 📌 Amac: machine.yml schema version 5 icin tasinabilir boot edilebilir ornek manifest saglar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: VM kaynaklari, UEFI guest boot, installer ISO, QCOW2 disk ve User NAT alanlarini ornekler
+# Bagimli Oldugu Katman: Repo
+
+schema_version: 6
+vm:
+  id: ubuntu-dev
+  name: Ubuntu Dev
+  vcpu_count: 4
+  memory_mib: 8192
+  acceleration: kvm
+  state: stopped
+  last_failure: null
+storage:
+  disks:
+    - id: system
+      format: qcow2
+      virtual_size_bytes: 68719476736
+      relative_path: disks/system.qcow2
+      bus: virtio
+      boot_index: 1
+network:
+  adapters:
+    - id: default
+      mode: user_nat
+      device_model: virtio_net_pci
+      mac_address: null
+      port_forwards:
+        - protocol: tcp
+          host_ip: "127.0.0.1"
+          host_port: 2222
+          guest_ip: null
+          guest_port: 22
+      bridge: null
+guest:
+  profile: linux
+  firmware:
+    mode: uefi
+    code_relative_path: firmware/OVMF_CODE.fd
+    vars_relative_path: firmware/OVMF_VARS.fd
+  boot_order:
+    - cdrom
+    - disk
+  boot_once: true
+  installer_iso:
+    id: installer
+    relative_path: media/installer.iso
+snapshots:
+  records: []

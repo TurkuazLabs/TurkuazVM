@@ -1,0 +1,17 @@
+# 📄 Dosya Yolu: /turkuazvm/guest/android-agent/Android.bp
+# 📌 Amac: Turkuaz Input Agent referans APK'sini AOSP build sistemine kaydeder
+# 📌 Modul - Soong
+# Version: 0.21.0
+# Aciklama: AccessibilityService tabanli persistent multi-touch agent APK'sini platform build'ine dahil eder
+# Bagimli Oldugu Katman: Service | Tool | Config
+
+android_app {
+    name: "TurkuazInputAgent",
+    srcs: ["src/**/*.kt"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    certificate: "platform",
+    privileged: true,
+    min_sdk_version: "26",
+    sdk_version: "system_current",
+}

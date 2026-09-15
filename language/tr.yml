@@ -1,0 +1,48 @@
+# 📄 Dosya Yolu: /turkuazvm/language/tr.yml
+# 📌 Amac: K host resilience runtime ve L validation status kodlari icin Turkce UI mesajlarini merkezi olarak tanimlar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: View katmaninin kullaniciya gosterecegi ASCII Turkce mesajlari status kodu bazinda saklar
+# Bagimli Oldugu Katman: Language | View
+
+TVM-K-000: "Islem basariyla tamamlandi."
+TVM-K-101: "Runtime config bulunamadi."
+TVM-K-102: "Runtime config gecersiz veya policy ile uyumsuz."
+TVM-K-103: "Gerekli runtime bagimliligi bulunamadi."
+TVM-K-104: "Guvenli olmayan dis komut engellendi."
+TVM-K-201: "Recovery workspace veya kaynak image gecersiz."
+TVM-K-202: "Kaynak image hash degeri degisti; islem durduruldu."
+TVM-K-203: "Immutable rescue overlay olusturulamadi."
+TVM-K-204: "Zorunlu sidecar inventory eksik."
+TVM-K-205: "Host-bound secret sidecar kopyalama engellendi."
+TVM-K-206: "Destination host secret rewrap tamamlanmadi."
+TVM-K-207: "Guest mimarisi destination host ile otomatik rebind icin uyumlu degil."
+TVM-K-301: "QMP endpoint baglantisi kurulamadi."
+TVM-K-302: "QMP komutu tamamlanamadi."
+TVM-K-303: "QMP device silme eventi zamaninda gelmedi."
+TVM-K-304: "Network backend veya device argumanlari policy tarafindan reddedildi."
+TVM-K-305: "Network recovery deneme limiti tukendi."
+TVM-K-306: "Guest MAC degisikligi engellendi."
+TVM-K-401: "Gerekli guest veya host capability bulunamadi."
+TVM-K-402: "Shared-folder host path allowlist disinda."
+TVM-K-403: "VirtioFS daemon baslatilamadi."
+TVM-K-404: "Windows VirtioFS runtime capability dogrulanmadi."
+TVM-K-405: "Drag-drop integrity veya capability kontrolu basarisiz."
+TVM-K-501: "Production icin gercek runtime testleri zorunlu."
+
+TVM-L-000: "Runtime validation basariyla tamamlandi."
+TVM-L-101: "Runtime validation config bulunamadi."
+TVM-L-102: "Runtime validation config gecersiz."
+TVM-L-103: "Gercek runtime testi icin gerekli binary bulunamadi."
+TVM-L-104: "Runtime validation evidence gecersiz."
+TVM-L-105: "Runtime validation fixture gecersiz."
+TVM-L-201: "Gercek qemu-img testi basarisiz."
+TVM-L-202: "Gercek qemu-img testi kaynak fixture dosyasini degistirdi."
+TVM-L-203: "QEMU backing chain dogrulamasi basarisiz."
+TVM-L-301: "Gercek qemu-system prosesi baslatilamadi."
+TVM-L-302: "Gercek QMP control-plane testi basarisiz."
+TVM-L-303: "QMP schema beklenen capability tiplerini icermiyor."
+TVM-L-304: "QEMU test prosesi guvenli sekilde kapatilamadi."
+TVM-L-401: "Production runtime testi icin gercek guest veya host fixture gerekiyor."
+TVM-L-402: "Bu host runtime validation testi icin desteklenmiyor."
+TVM-L-501: "Production release gercek runtime testleri tamamlanana kadar bloke."

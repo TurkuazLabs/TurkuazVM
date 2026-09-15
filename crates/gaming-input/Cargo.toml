@@ -1,0 +1,16 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/gaming-input/Cargo.toml
+# 📌 Amac: TurkuazVM Gaming Input bounded context crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Game profile, keymapping ve input translation domain/service katmanlarini dis adapterlerden ayirir
+# Bagimli Oldugu Katman: Service | Repo | Tool
+
+[package]
+name = "turkuazvm-gaming-input"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true

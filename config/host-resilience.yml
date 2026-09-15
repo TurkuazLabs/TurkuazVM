@@ -1,0 +1,126 @@
+# 📄 Dosya Yolu: /turkuazvm/config/host-resilience.yml
+# 📌 Amac: Host degisimi, image rescue, network recovery ve guest integration icin merkezi fail-closed politikayi tanimlar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: J modulu image kurtarma, ag toparlama, drag-drop ve shared-folder davranislarini tek policy kaynaginda toplar
+# Bagimli Oldugu Katman: Service | Repo | Tool | View | Language
+
+schema: 1
+version: "0.14.0"
+host_resilience:
+  image_recovery:
+    immutable_source_required: true
+    rescue_overlay_required: true
+    automatic_repair_allowed: false
+    preserve_firmware_mode: true
+    preserve_disk_bus_when_known: true
+    preserve_machine_profile_when_available: true
+    preserve_guest_identity: true
+    rewrap_host_bound_secret_on_move: true
+    copy_host_bound_secret_blob: false
+    require_sidecar_inventory:
+      - firmware_nvram
+      - tpm_state
+      - guest_identity_metadata
+    missing_sidecar_action: WARN_AND_BLOCK_AUTOMATIC_BOOT
+    qemu_img_check_mode: read_only
+    repair_requires_explicit_clone: true
+    hardware_fingerprint_is_advisory: true
+    hardware_fingerprint_boot_lock: false
+
+  network_recovery:
+    preserve_guest_mac: true
+    automatic_host_bridge_mutation: false
+    automatic_host_route_mutation: false
+    automatic_firewall_mutation: false
+    max_recovery_attempts: 4
+    probe_order:
+      - host_link
+      - host_route
+      - host_dns
+      - qemu_backend
+      - guest_link
+      - guest_dhcp
+      - guest_dns
+    recovery_order:
+      - guest_soft_renew
+      - same_backend_reconnect
+      - netdev_recreate_same_mac
+      - rescue_backend
+    rescue_backends:
+      linux:
+        - passt
+        - user
+      windows:
+        - user
+      macos:
+        - user
+    ipv6_mode: capability_driven
+    inbound_port_forwarding: explicit_only
+    bridge_or_tap_setup: explicit_only
+
+  guest_integration:
+    capability_negotiation_required: true
+    signed_guest_agent_required: true
+    drag_drop:
+      transport: tvgb_authenticated_file_transfer
+      shared_folder_dependency: false
+      overwrite_existing: false
+      sha256_required: true
+      resume_required: true
+      guest_receive_root_managed: true
+    shared_folder:
+      default_enabled: false
+      default_access: read_only
+      host_path_allowlist_required: true
+      canonical_path_confinement_required: true
+      symlink_escape_reject: true
+      network_share_fallback_allowed: false
+      unsupported_fallback: tvgb_on_demand_copy
+      backends:
+        linux:
+          preferred: virtiofs
+          fallback: none
+          maturity: supported_when_capability_verified
+        windows:
+          preferred: virtiofs
+          fallback: none
+          maturity: experimental
+          requirements:
+            - virtiofs_driver
+            - virtiofs_service
+            - winfsp_core
+        macos:
+          preferred: none
+          fallback: none
+          maturity: disabled_until_verified
+
+  release_gate:
+    require_policy_validation: true
+    require_negative_scenario_tests: true
+    require_real_host_move_test: true
+    require_real_network_fault_test: true
+    require_guest_drag_drop_test: true
+    require_shared_folder_platform_test: true
+    production_status: BLOCKED_UNTIL_RUNTIME_TESTS_PASS
+
+  status_codes:
+    pass: TVM-J-000
+    config_missing: TVM-J-101
+    config_invalid: TVM-J-102
+    source_mutation_risk: TVM-J-201
+    rescue_overlay_missing: TVM-J-202
+    automatic_repair_forbidden: TVM-J-203
+    host_secret_copy_forbidden: TVM-J-204
+    firmware_change_blocked: TVM-J-205
+    sidecar_missing: TVM-J-206
+    network_policy_unsafe: TVM-J-301
+    network_recovery_exhausted: TVM-J-302
+    guest_mac_change_blocked: TVM-J-303
+    host_network_mutation_blocked: TVM-J-304
+    guest_agent_untrusted: TVM-J-401
+    drag_drop_integrity_required: TVM-J-402
+    shared_folder_path_rejected: TVM-J-403
+    shared_folder_unsupported: TVM-J-404
+    windows_virtiofs_unverified: TVM-J-405
+    runtime_validation_required: TVM-J-501

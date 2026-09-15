@@ -1,0 +1,16 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/artifact-cache/Cargo.toml
+# 📌 Amac: Merkezi Artifact Cache domain, port ve Service katmanlarini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: IMG, ISO, firmware, driver ve guest-tool artifactlarini tekrar indirmeden kullanmak icin cache cekirdegini saglar
+# Bagimli Oldugu Katman: Service | Repo | Tool
+
+[package]
+name = "turkuazvm-artifact-cache"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true

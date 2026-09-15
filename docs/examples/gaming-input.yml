@@ -1,0 +1,42 @@
+# 📄 Dosya Yolu: /turkuazvm/docs/examples/gaming-input.yml
+# 📌 Amac: Gaming Input profile schema version 1 ornegini gosterir
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Normalized WASD joystick, mouse look ve iki basit binding ornegi sunar
+# Bagimli Oldugu Katman: Repo | View
+
+schema_version: 1
+vm_id: android-game
+package_name: null
+joystick:
+  enabled: true
+  center:
+    x: 1800
+    y: 8000
+  radius: 1100
+  pointer_id: 0
+mouse_look:
+  enabled: true
+  anchor:
+    x: 7200
+    y: 5000
+  sensitivity_x_milli: 1000
+  sensitivity_y_milli: 1000
+  pointer_id: 1
+bindings:
+  - source:
+      type: key
+      key: space
+    target:
+      type: tap
+      position:
+        x: 9000
+        y: 6200
+  - source:
+      type: mouse_button
+      button: left
+    target:
+      type: tap
+      position:
+        x: 8600
+        y: 7400

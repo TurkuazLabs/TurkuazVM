@@ -1,0 +1,16 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/android-image/Cargo.toml
+# 📌 Amac: Android image registry ve AOSP build plan bounded context crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Android image domain, port ve service katmanlarini framework bagimsiz olarak toplar
+# Bagimli Oldugu Katman: Service | Repo | Tool | View
+
+[package]
+name = "turkuazvm-android-image"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,1016 @@
+<!--
+# 📄 Dosya Yolu: /turkuazvm/apps/desktop/ui/index.html
+# 📌 Amac: TurkuazVM Desktop icin Home + inline VM Workspace kabugunu ve ikincil yonetim modallarini tanimlar
+# 📌 Modul - HTML
+# Version: 0.41.2
+# Aciklama: VM kontrol alanini ve Baglanti Merkezi SSH/RDP erisim hazirlama akislarini tanimlar; calisan VM yeniden yapilandirma bilgilendirmesini destekler
+# Bagimli Oldugu Katman: View
+-->
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TurkuazVM</title>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./views/workspace.css">
+</head>
+<body>
+  <div class="app-shell workspace-v2">
+    <aside class="sidebar workspace-sidebar">
+      <div class="brand workspace-brand">
+        <div class="brand-mark">TV</div>
+        <div class="brand-copy"><strong>TurkuazVM</strong><span>Sanal Makine Yoneticisi</span></div>
+        <button id="sidebar-collapse-button" class="sidebar-menu-button" type="button" aria-label="Sol paneli daralt" title="Sol paneli daralt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+
+      <nav class="workspace-nav" aria-label="Ana navigasyon">
+        <button id="home-button" class="nav-item active" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 11 8-7 8 7v9H4z"/><path d="M9 20v-6h6v6"/></svg></span><span class="nav-label">Ana Sayfa</span>
+        </button>
+        <button id="machines-button" class="nav-item" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span class="nav-label">Sanal Makineler</span>
+        </button>
+        <button id="android-images-button" class="nav-item" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.3"/><path d="m5 17 4.5-4 3 2.5 2.5-2 4 3.5"/></svg></span><span class="nav-label">Goruntuler</span>
+        </button>
+        <button id="network-button" class="nav-item expert-only" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M12 7.5v4M7 16l3.5-3M17 16l-3.5-3"/></svg></span><span class="nav-label">Ag</span>
+        </button>
+        <button id="storage-button" class="nav-item expert-only" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span><span class="nav-label">Depolama</span>
+        </button>
+        <button id="logs-button" class="nav-item expert-only" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/></svg></span><span class="nav-label">Gorevler</span>
+        </button>
+      </nav>
+
+      <div class="workspace-sidebar-footer">
+        <button id="artifact-cache-button" class="nav-item nav-item-subtle expert-only" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14v12H5zM8 4h8v3M9 11h6M9 15h4"/></svg></span><span class="nav-label">Onbellek</span>
+        </button>
+        <button id="gaming-button" class="nav-item nav-item-subtle" type="button">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span><span class="nav-label">Ayarlar</span>
+        </button>
+        <div class="user-card compact-user-card"><div class="user-avatar">TA</div><div><strong>turkuaz-admin</strong><span id="engine-mini-status">Motor kontrol ediliyor</span></div></div>
+      </div>
+    </aside>
+
+    <main class="content-shell workspace-content">
+      <header class="topbar workspace-topbar">
+        <div class="topbar-left">
+          <button id="topbar-sidebar-toggle" class="topbar-icon-button" type="button" aria-label="Sol paneli ac veya kapat" title="Sol panel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+          <div class="workspace-title"><span id="workspace-section-kicker" class="workspace-kicker">YEREL CALISMA ALANI</span><strong id="workspace-section-title">Ana Sayfa</strong></div>
+        </div>
+        <div class="topbar-actions">
+          <label class="host-picker expert-only"><span>Sunucu</span><select id="host-selector" aria-label="TurkuazVM host secimi"></select></label>
+          <button id="shortcuts-button" class="toolbar-button icon-toolbar" type="button" title="Klavye kisayollari"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h1M11 10h1M15 10h2M7 14h5M14 14h3"/></svg></button>
+          <button id="expert-mode-button" class="toolbar-button mode-button" type="button" title="Uzman gorunumunu ac">Uzman Modu</button><button id="refresh-button" class="toolbar-button expert-only" type="button">Yenile</button>
+          <button id="new-vm-button" class="primary-button" type="button">+ Yeni VM</button>
+        </div>
+      </header>
+
+      <section id="home-page" class="workspace-page workspace-home-dashboard">
+        <div id="home-overview"></div>
+      </section>
+
+      <section id="machines-page" class="workspace-panel workspace-home workspace-page hidden">
+        <div id="error-banner" class="error-banner hidden" role="alert"></div>
+
+        <section class="system-health-strip" aria-label="Sistem sagligi">
+          <div class="system-health-main"><span class="health-dot"></span><div><strong>Sistem Durumu</strong><span id="engine-status">Kontrol ediliyor</span></div></div>
+          <div class="system-health-meta expert-only"><span>QEMU <strong id="qemu-status">-</strong></span><span>Host <strong id="host-status">-</strong></span><span>Hizlandirma <strong id="acceleration-status">-</strong></span></div>
+          <span id="selection-summary" class="selection-summary">Tum makineler</span>
+        </section>
+
+        <section id="vm-workspace-shell" class="vm-workspace-shell">
+          <div id="fleet-empty-workspace" class="fleet-empty-workspace hidden">
+            <div class="fleet-empty-hero">
+              <div class="fleet-empty-icon">TV</div>
+              <div>
+                <p class="eyebrow">ILK SANAL MAKINE</p>
+                <h2>Kontrol merkezi kullanima hazir</h2>
+                <p>Once bir sistem goruntusu secin veya dogrudan yeni VM olusturun. VM olustuktan sonra baslatma, konsol, disk, ag ve snapshot kontrolleri bu ekranda tek yerde gorunecek.</p>
+              </div>
+            </div>
+            <div class="fleet-empty-actions">
+              <button class="primary-button fleet-primary-action" type="button" data-empty-create>+ Yeni VM Olustur</button>
+              <button class="secondary-button fleet-secondary-action" type="button" data-empty-images>Goruntu Merkezini Ac</button>
+            </div>
+            <div class="fleet-empty-steps" aria-label="Ilk kullanim adimlari">
+              <article><span>1</span><div><strong>Goruntu sec</strong><small>Windows, Linux veya Android kaynagini hazirla.</small></div></article>
+              <article><span>2</span><div><strong>VM olustur</strong><small>CPU, RAM, disk ve ag profilini belirle.</small></div></article>
+              <article><span>3</span><div><strong>Baslat ve yonet</strong><small>Konsol ve tum VM kontrollerini tek panelden kullan.</small></div></article>
+            </div>
+          </div>
+          <aside id="vm-library-pane" class="vm-library-pane">
+            <div class="library-heading"><div><p class="eyebrow">SANAL MAKINELER</p><h1>VM Kontrol Merkezi</h1></div><span id="machine-count" class="library-count">0 makine</span></div>
+            <label class="searchbox library-search" aria-label="VM arama kutusu"><span class="searchbox-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg></span><input id="vm-search-input" type="search" placeholder="VM ara veya sec" autocomplete="off"><kbd class="search-shortcut">Ctrl K</kbd></label>
+            <div id="vm-filter-group" class="library-filter-row" aria-label="VM hizli filtreleri">
+              <button class="segment-button active" type="button" data-vm-filter="all">Tumu</button>
+              <button class="segment-button" type="button" data-vm-filter="running">Calisan</button>
+              <button class="segment-button" type="button" data-vm-filter="stopped">Kapali</button>
+              <button class="segment-button" type="button" data-vm-filter="error">Sorunlu</button>
+              <button class="segment-button expert-filter" type="button" data-vm-filter="android">Android</button>
+              <button class="segment-button expert-filter" type="button" data-vm-filter="linux">Linux</button>
+              <button class="segment-button expert-filter" type="button" data-vm-filter="windows">Windows</button>
+            </div>
+            <div class="library-tools">
+              <select id="vm-sort-select" aria-label="VM siralama"><option value="name-asc">Ad A-Z</option><option value="name-desc">Ad Z-A</option><option value="state">Durum</option><option value="profile">Sistem</option></select>
+              <button id="clear-vm-filter-button" class="text-button hidden" type="button">Filtreyi temizle</button>
+            </div>
+            <div id="machine-grid" class="vm-library-list"></div>
+            <div id="empty-state" class="empty-state hidden"><div class="empty-icon">VM</div><h3>Henuz sanal makine yok</h3><p>Ilk VM'inizi olusturarak baslayin.</p><button class="primary-button empty-create-button" type="button" data-empty-create>+ Yeni VM</button></div>
+            <div class="library-footer-summary expert-only"><span><strong id="summary-total-vms">0</strong> toplam</span><span class="running-summary"><strong id="summary-running-vms">0</strong> calisiyor</span><span><strong id="summary-stopped-vms">0</strong> kapali</span><span class="error-summary"><strong id="summary-error-vms">0</strong> sorun</span></div>
+          </aside>
+
+          <section id="vm-detail-pane" class="vm-detail-pane" aria-live="polite">
+            <div id="vm-detail-empty" class="vm-detail-empty"><div class="detail-empty-visual"><span>TV</span></div><h2>Kontrol etmek icin bir VM secin</h2><p>Baslatma, konsol, baglanti, donanim, disk, ag ve snapshot islemleri tek kontrol alaninda gorunecek.</p></div>
+            <div id="vm-detail-panel" class="vm-detail-panel hidden"></div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <section class="task-dock" aria-label="TurkuazVM gorev cubugu">
+      <button id="task-dock-toggle" class="taskbar-main" type="button" aria-expanded="false" aria-controls="task-dock-panel">
+        <span class="taskbar-status"><i class="taskbar-status-dot"></i><strong id="task-system-status">Sistem Hazir</strong></span>
+        <span class="taskbar-separator" aria-hidden="true"></span>
+        <span id="task-active-chip" class="taskbar-chip"><strong id="task-active-count">0</strong> aktif</span>
+        <span id="task-error-chip" class="taskbar-chip error"><strong id="task-error-count">0</strong> hata</span>
+        <span class="taskbar-latest expert-only"><span>Son islem</span><strong id="task-latest-label">Islem yok</strong></span>
+        <span class="taskbar-open-label">Gorevler <strong id="task-dock-count">0</strong><span class="taskbar-chevron">^</span></span>
+      </button>
+      <div id="task-dock-panel" class="task-dock-panel hidden">
+        <div class="task-dock-heading">
+          <div><strong>Gorev Merkezi</strong><span>Indirmeler, image kurulumlari ve son islemler</span></div>
+          <button id="clear-activity-button" class="text-button" type="button">Tamamlananlari Temizle</button>
+        </div>
+        <div id="activity-list" class="activity-list task-dock-list"></div>
+        <div id="activity-empty" class="activity-empty">Bu oturumda islem yok.</div>
+      </div>
+    </section>
+
+    <div class="compatibility-elements" aria-hidden="true">
+      <div id="tree-machine-list"></div>
+      <span id="resource-engine-status"></span><span id="host-eyebrow"></span><span id="transport-status"></span><span id="adb-status"></span><span id="gpu-status"></span>
+      <span id="summary-snapshots">0</span><span id="summary-disks">0</span>
+      <button id="bulk-start-button" type="button"></button><button id="bulk-stop-button" type="button"></button>
+      <button id="card-view-button" type="button"></button><button id="compact-view-button" type="button"></button>
+    </div>
+  </div>
+
+  <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+  <div id="shortcuts-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+    <div class="modal-card shortcuts-modal-card">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">HIZLI KULLANIM</p>
+          <h2 id="shortcuts-title">Klavye Kisayollari</h2>
+          <p class="modal-subtitle">Sik kullanilan islemlere klavyeden hizli erisim.</p>
+        </div>
+        <button id="close-shortcuts-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div class="shortcut-list">
+        <div><span>VM ara</span><kbd>Ctrl + K</kbd></div>
+        <div><span>Yeni VM</span><kbd>Ctrl + N</kbd></div>
+        <div><span>Dashboard yenile</span><kbd>F5</kbd></div>
+        <div><span>Acik pencereyi kapat</span><kbd>Esc</kbd></div>
+        <div><span>Filtreleri temizle</span><kbd>Ctrl + Shift + X</kbd></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="storage-modal" class="modal-backdrop workspace-page-modal hidden" role="region" aria-labelledby="storage-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p id="storage-eyebrow" class="eyebrow">DEPOLAMA YONETIMI</p>
+          <h2 id="storage-title">Depolama</h2>
+          <p id="storage-subtitle" class="modal-subtitle">Sunucu kapasitesi, VM disk olusturma ve TurkuazVM tasinabilir imaj politikasini yonetin.</p>
+        </div>
+        <button id="close-storage-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div class="gpu-status-grid">
+        <div><span>Veri Dizini</span><strong id="storage-data-root">-</strong></div>
+        <div><span>Bos Alan</span><strong id="storage-free">-</strong></div>
+        <div><span>Toplam</span><strong id="storage-total">-</strong></div>
+        <div><span>Calisma Diski</span><strong id="storage-runtime-format">QCOW2</strong></div>
+        <div><span>Tasinabilir Imaj</span><strong id="storage-portable-format">.tvmimg</strong></div>
+        <div><span>VM Izolasyonu</span><strong id="storage-isolation">OZEL KOPYA</strong></div>
+      </div>
+      <div id="storage-flow-progress" class="wizard-progress configuration-wizard-progress storage-wizard-progress hidden" aria-label="VM olusturma disk adimi">
+        <span class="done">1 VM</span><span class="active">2 Disk</span><span id="storage-flow-media-step" class="hidden">3 Kurulum Medyasi</span><span id="storage-flow-image-step" class="hidden">3 Android Image</span><span id="storage-flow-network-step">3 Ag</span><span id="storage-flow-summary-step">4 Ozet</span>
+      </div>
+      <form id="storage-disk-form" class="inline-form android-apk-form">
+        <label><span>VM</span><select id="storage-vm" required></select></label>
+        <label><span>Disk Adi / ID</span><input id="storage-disk-id" value="disk-01" required pattern="[A-Za-z0-9._-]+"></label>
+        <label><span>Boyut (GiB)</span><input id="storage-disk-size" type="number" value="64" min="1" max="4096" required></label>
+        <button id="storage-create-button" class="primary-button" type="submit">Disk Olustur</button>
+      </form>
+      <p id="storage-note" class="form-note">QCOW2 varsayilan runtime formati. Portable .tvmimg export/import sonraki paketleme fazinda standart disk payload tasiyacak.</p>
+      <div class="android-section">
+        <div class="section-heading compact-heading"><div><h3>Bagli Diskler</h3><p>Secili VM disklerini buyutebilir veya silebilirsiniz.</p></div></div>
+        <div id="storage-disk-list" class="snapshot-list"></div>
+        <div id="storage-disk-empty" class="compact-empty hidden">Bu VM icin bagli disk yok.</div>
+      </div>
+      <div id="storage-flow-footer" class="storage-flow-footer hidden">
+        <div>
+          <strong id="storage-flow-status">Once diski olusturun.</strong>
+          <p id="storage-flow-hint">Disk basariyla olusturuldugunda Ileri aktif olur.</p>
+        </div>
+        <button id="storage-next-button" class="primary-button" type="button" disabled>Ileri</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="artifact-cache-modal" class="modal-backdrop workspace-page-modal hidden" role="region" aria-labelledby="artifact-cache-title">
+    <div class="modal-card modal-wide cache-modal-card">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">ICERIK ONBELLEGI</p>
+          <h2 id="artifact-cache-title">Icerik Onbellegi</h2>
+          <p class="modal-subtitle">Android IMG ve diger dosyalari SHA-256 ile yeniden kullanir; degisebilir HTTP kaynaklarini ETag/Last-Modified ile yeniden dogrular.</p>
+        </div>
+        <button id="close-artifact-cache-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div class="gpu-status-grid cache-status-grid">
+        <div><span>Durum</span><strong id="artifact-cache-enabled">-</strong></div>
+        <div><span>Kullanilan</span><strong id="artifact-cache-used">-</strong></div>
+        <div><span>Kota</span><strong id="artifact-cache-quota">-</strong></div>
+        <div><span>Dosya</span><strong id="artifact-cache-count">-</strong></div>
+        <div><span>Sabitlenen</span><strong id="artifact-cache-pinned">-</strong></div>
+        <div><span>Degisebilir</span><strong id="artifact-cache-mutable">-</strong></div>
+        <div><span>Butunluk</span><strong id="artifact-cache-integrity">-</strong></div>
+        <div><span>Cevrimdisi</span><strong id="artifact-cache-offline">-</strong></div>
+      </div>
+      <form id="artifact-cache-fetch-form" class="compact-form cache-fetch-form">
+        <label><span>Kaynak Anahtari</span><input id="artifact-cache-fetch-key" value="manual:" required pattern="[A-Za-z0-9._:/-]+" maxlength="200"></label>
+        <label class="wide-field"><span>HTTPS URL</span><input id="artifact-cache-fetch-url" type="url" placeholder="https://example.com/artifact.img" required></label>
+        <label class="checkbox-label"><input id="artifact-cache-fetch-pinned" type="checkbox"> <span>Pin</span></label>
+        <button id="artifact-cache-fetch" class="primary-button" type="submit">Indir ve Onbellege Al</button>
+      </form>
+      <div class="section-heading cache-toolbar">
+        <div>
+          <h3>Onbellek Kayitlari</h3>
+          <p id="artifact-cache-result">Cache bilgisi yukleniyor.</p>
+        </div>
+        <div class="section-actions">
+          <button id="artifact-cache-refresh" class="ghost-button" type="button">Yenile</button>
+          <button id="artifact-cache-verify" class="ghost-button" type="button">SHA Dogrula</button>
+          <button id="artifact-cache-revalidate-all" class="ghost-button" type="button">Degisebilirleri Dogrula</button>
+          <button id="artifact-cache-cleanup" class="primary-button" type="button">Kota Temizle</button>
+        </div>
+      </div>
+      <div id="artifact-cache-list" class="snapshot-list cache-list"></div>
+      <div id="artifact-cache-empty" class="compact-empty hidden">Onbellek kaydi yok.</div>
+      <p class="form-note">PINNED kayitlar kota temizliginde silinmez. Mutable kaynak revalidation sirasinda 304 HIT, remote degisiklikte last-known-good korunur; yeni payload ancak GET + SHA-256 store basarili olursa atomik olarak promote edilir. Offline stale yalniz transient network hatalarinda kullanilir.</p>
+    </div>
+  </div>
+
+  <div id="network-modal" class="modal-backdrop workspace-page-modal hidden" role="region" aria-labelledby="network-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p id="network-eyebrow" class="eyebrow">AG YONETIMI</p>
+          <h2 id="network-title">Aglar</h2>
+          <p id="network-subtitle" class="modal-subtitle">Turkuaz NAT varsayilan profildir; QEMU dahili NAT ile internete cikar ve host servisleri port yayinlama ile erisir.</p>
+        </div>
+        <button id="close-network-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div class="gpu-status-grid network-status-grid">
+        <div><span>Turkuaz NAT</span><strong id="network-managed-nat">-</strong></div>
+        <div><span>Izole Ag</span><strong id="network-private">-</strong></div>
+        <div><span>QEMU NAT Uyumluluk</span><strong id="network-user-nat">-</strong></div>
+        <div><span>Bridge</span><strong id="network-bridge">-</strong></div>
+        <div><span>Gelismis TAP</span><strong id="network-managed-tap">-</strong></div>
+        <div><span>Model</span><strong id="network-model">virtio_net_pci</strong></div>
+      </div>
+      <div class="network-fabric-summary">
+        <span><em>Alt Ag</em><strong id="network-subnet">-</strong></span>
+        <span><em>Ag Gecidi</em><strong id="network-gateway">-</strong></span>
+        <span><em>IP Havuzu</em><strong id="network-pool">-</strong></span>
+      </div>
+      <div id="network-flow-progress" class="wizard-progress configuration-wizard-progress hidden" aria-label="VM olusturma ag adimi">
+        <span class="done">1 VM</span><span class="done">2 Disk</span><span id="network-flow-media-step" class="done hidden">3 Kurulum Medyasi</span><span id="network-flow-image-step" class="done hidden">3 Android Image</span><span class="active">Ag</span><span>Ozet</span>
+      </div>
+      <form id="network-attach-form" class="form-grid network-profile-form">
+        <label><span>VM</span><select id="network-vm" required></select></label>
+        <label><span>1 Ag Profili</span><select id="network-profile"><option value="managed_nat">Turkuaz NAT - QEMU NAT + Internet</option><option value="private">Izole - Yalniz VM/Sunucu</option><option value="bridge">Bridge / Mevcut TAP - Fiziksel LAN</option><option value="user_nat">QEMU NAT - Basit / Eski Uyumluluk</option></select></label>
+        <label><span>2 NIC / Baglanti ID</span><input id="network-id" value="net-01" required pattern="[A-Za-z0-9._-]+"></label>
+        <label id="network-bridge-name-wrap" class="hidden"><span>3 Bridge Adi</span><input id="network-bridge-name" placeholder="Network Bridge"></label>
+        <label id="network-tap-name-wrap" class="hidden"><span>TAP Adi</span><input id="network-tap-name" placeholder="TurkuazVM-TAP"></label>
+        <div class="network-form-action"><button id="network-attach-button" class="primary-button" type="submit">Ag Ekle</button></div>
+      </form>
+      <p class="form-note">Turkuaz NAT QEMU dahili NAT kullanir. Private ve Bridge/TAP gelismis host ag senaryolaridir. QEMU NAT - Basit yalniz uyumluluk icin tutulur.</p>
+      <div class="android-section">
+        <div class="section-heading compact-heading"><div><h3>Bagli Aglar</h3><p>IP, MAC ve yayinlanan servisleri tek yerden yonetin.</p></div></div>
+        <div id="network-attachment-list" class="snapshot-list"></div>
+        <div id="network-attachment-empty" class="compact-empty hidden">Bu VM icin bagli ag yok.</div>
+      </div>
+      <div class="android-section network-service-section">
+        <div class="section-heading compact-heading"><div><h3>Servis Yayinla</h3><p>Turkuaz NAT uzerindeki servisi 127.0.0.1 host portuna yayinlayin. QEMU NAT guest IP adresine hosttan dogrudan baglanmak yerine bu portlari kullanir.</p></div></div>
+        <form id="network-service-form" class="inline-form network-service-form">
+          <label><span>Ag</span><select id="network-service-network"></select></label>
+          <label><span>Hazir Profil</span><select id="network-service-preset"><option value="ssh">SSH</option><option value="http">HTTP</option><option value="https">HTTPS</option><option value="rdp">RDP</option><option value="custom">Ozel</option></select></label>
+          <label><span>Protokol</span><select id="network-service-protocol"><option value="tcp">TCP</option><option value="udp">UDP</option></select></label>
+          <label><span>Sunucu Portu</span><input id="network-service-host-port" type="number" min="1" max="65535" value="2222"></label>
+          <label><span>VM Portu</span><input id="network-service-guest-port" type="number" min="1" max="65535" value="22"></label>
+          <button id="network-service-publish" class="ghost-button" type="submit">Yayinla</button>
+        </form>
+      </div>
+      <div id="network-flow-footer" class="configuration-flow-footer hidden">
+        <div><strong id="network-flow-status">Once ag baglantisini ekleyin.</strong><p id="network-flow-hint">Ag basariyla eklendiginde Ileri aktif olur.</p></div>
+        <button id="network-next-button" class="primary-button" type="button" disabled>Ileri: Ozet</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="android-images-modal" class="modal-backdrop workspace-page-modal hidden" role="region" aria-labelledby="android-images-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p id="android-images-eyebrow" class="eyebrow">GORUNTU MERKEZI</p>
+          <h2 id="android-images-title">Goruntu Merkezi</h2>
+          <p id="android-images-subtitle" class="modal-subtitle">Windows/Linux kurulum ISO'larini ve Android sistem goruntulerini tek merkezden yonetin.</p>
+        </div>
+        <button id="close-android-images-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div id="android-image-flow-progress" class="wizard-progress configuration-wizard-progress hidden expert-only" aria-label="VM olusturma Android image adimi">
+        <span class="done">1 VM</span><span class="done">2 Disk</span><span class="active">3 Android Image</span><span>4 Ag</span><span>5 Ozet</span>
+      </div>
+      <div id="image-center-tabs" class="image-center-tabs" role="tablist" aria-label="Goruntu turu">
+        <button id="image-center-iso-tab" class="image-center-tab active" type="button" data-image-center-tab="iso">Kurulum ISO'lari</button>
+        <button id="image-center-android-tab" class="image-center-tab" type="button" data-image-center-tab="android">Android</button>
+      </div>
+      <section id="image-center-iso-panel" class="image-center-panel" aria-labelledby="image-center-iso-title">
+        <div class="section-heading compact-heading">
+          <div><h3 id="image-center-iso-title">Kurulum ISO'lari</h3><p>Guest Catalog icindeki resmi Windows ve Linux kurulum kaynaklari.</p></div>
+          <button id="image-center-iso-refresh" class="ghost-button expert-only" type="button">Katalogu Yenile</button>
+        </div>
+        <div id="image-center-standard-iso" class="image-center-standard-iso standard-only">
+          <label class="image-center-standard-select"><span>Sistem / ISO</span><select id="image-center-standard-iso-select" aria-label="Kurulum ISO kaynagi"></select></label>
+          <div class="image-center-standard-summary">
+            <div class="image-center-standard-title"><span id="image-center-standard-iso-badge" class="image-center-source-icon">OS</span><div><strong id="image-center-standard-iso-label">Kurulum kaynagi</strong><span id="image-center-standard-iso-state">Katalog yukleniyor</span></div></div>
+            <button id="image-center-standard-iso-action" class="primary-button" type="button" disabled>Sec</button>
+          </div>
+          <p id="image-center-standard-iso-note" class="android-standard-note">Windows ve Linux kurulum kaynaklari yukleniyor.</p>
+          <div id="image-center-iso-download-progress" class="download-progress-card hidden" aria-live="polite">
+            <div class="download-progress-head"><div><strong data-download-role="title">ISO indiriliyor</strong><span data-download-role="stage">Indirme bekleniyor</span></div><span class="download-progress-percent" data-download-role="percent">--</span></div>
+            <div class="download-progress-track is-indeterminate" data-download-role="track" role="progressbar" aria-label="Goruntu Merkezi ISO indirme ilerlemesi" aria-valuemin="0" aria-valuemax="100"><span data-download-role="bar"></span></div>
+            <div class="download-progress-stats"><span data-download-role="bytes">Boyut bekleniyor</span><span data-download-role="speed">Hiz -</span><span data-download-role="eta">ETA -</span><span data-download-role="elapsed">Sure -</span></div>
+            <p class="download-progress-detail" data-download-role="detail">Indirme gorevi bekleniyor.</p>
+          </div>
+        </div>
+        <div id="image-center-iso-list" class="image-center-iso-list expert-only"></div>
+        <div id="image-center-iso-empty" class="compact-empty hidden">Kurulum ISO kaynagi bulunamadi.</div>
+      </section>
+      <div id="image-center-android-panel" class="image-center-panel hidden">
+      <section class="android-release-center" aria-labelledby="android-release-center-title">
+        <div class="section-heading compact-heading">
+          <div><h3 id="android-release-center-title">Android Surumu</h3><p class="standard-only">Surumu secin ve hazirlayin.</p><p class="expert-only">Tum desteklenen Android surumlerini, READY image durumlarini ve uyumluluk ayrintilarini yonetin.</p></div>
+          <button id="android-release-refresh" class="ghost-button expert-only" type="button">Surumleri Yenile</button>
+        </div>
+        <div id="android-standard-release" class="android-standard-release standard-only">
+          <label class="android-standard-select"><span>Surum</span><select id="android-standard-release-select" aria-label="Android surumu"></select></label>
+          <div class="android-standard-summary">
+            <div class="android-standard-title"><span id="android-standard-release-badge" class="android-version-badge">-</span><div><strong id="android-standard-release-label">Android</strong><span id="android-standard-release-state">Hazirlik bekleniyor</span></div></div>
+            <button id="android-standard-release-action" class="primary-button" type="button" disabled>Hazirla</button>
+          </div>
+          <p id="android-standard-release-note" class="android-standard-note">Surum bilgisi yukleniyor.</p>
+          <div id="android-standard-download-progress" class="download-progress-card hidden" aria-live="polite">
+            <div class="download-progress-head"><div><strong data-download-role="title">Android image hazirlaniyor</strong><span data-download-role="stage">Asama bekleniyor</span></div><span class="download-progress-percent" data-download-role="percent">--</span></div>
+            <div class="download-progress-track is-indeterminate" data-download-role="track" role="progressbar" aria-label="Goruntu Merkezi Android image ilerlemesi" aria-valuemin="0" aria-valuemax="100"><span data-download-role="bar"></span></div>
+            <div class="download-progress-stats"><span data-download-role="bytes">Boyut bekleniyor</span><span data-download-role="speed">Hiz -</span><span data-download-role="eta">ETA -</span><span data-download-role="elapsed">Sure -</span></div>
+            <p class="download-progress-detail" data-download-role="detail">Android CI gorevi bekleniyor.</p>
+          </div>
+        </div>
+        <div id="android-release-context" class="android-release-context expert-only">Android profilleri yukleniyor.</div>
+        <div id="android-release-catalog" class="android-release-grid expert-only" aria-label="Android Surumleri"></div>
+      </section>
+      <details class="android-advanced-panel expert-only">
+        <summary>Gelismis Image Registry</summary>
+      <form id="android-image-define-form" class="inline-form android-apk-form">
+        <label><span>Imaj ID</span><input id="android-image-id" value="turkuaz-android-x86_64" required maxlength="64"></label>
+        <label><span>Ad</span><input id="android-image-name" value="Turkuaz Android Gaming x86_64" required maxlength="96"></label>
+        <button class="primary-button" type="submit">Tanimla</button>
+        <button id="android-images-refresh" class="ghost-button" type="button">Yenile</button>
+      </form>
+      <div id="android-image-plan" class="form-note image-plan">Build plani secilmedi.</div>
+      </details>
+      <div class="inline-form android-apk-form android-image-quick-assign expert-only">
+        <label><span>Hizli VM Atama</span><select id="android-image-quick-vm" aria-label="Android image hizli VM atama"></select></label>
+        <span id="android-image-quick-vm-note" class="form-note">Durmus Android VM sec.</span>
+      </div>
+      <div id="android-images-list" class="snapshot-list expert-only"></div>
+      <div id="android-images-empty" class="compact-empty hidden expert-only">Android image registry bos.</div>
+      <div id="android-image-flow-footer" class="configuration-flow-footer hidden">
+        <div>
+          <strong id="android-image-flow-status">Once Android image atayin.</strong>
+          <p id="android-image-flow-hint">Image atamasi basarili oldugunda Ileri aktif olur.</p>
+        </div>
+        <button id="android-image-next-button" class="primary-button" type="button" disabled>Ileri: Ag</button>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="installer-media-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="installer-media-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">VM OLUSTURMA / KURULUM MEDYASI</p>
+          <h2 id="installer-media-title">Kurulum Medyasi</h2>
+          <p id="installer-media-subtitle" class="modal-subtitle">Windows veya Linux installer ISO dosyasini VM'e baglayin.</p>
+        </div>
+        <button id="close-installer-media-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div id="installer-media-flow-progress" class="wizard-progress configuration-wizard-progress" aria-label="VM olusturma kurulum medyasi adimi">
+        <span class="done">1 VM</span><span class="done">2 Disk</span><span class="active">3 Medya</span><span>4 Ag</span><span>5 Ozet</span>
+      </div>
+      <div class="form-grid">
+        <label><span>VM</span><input id="installer-media-vm" readonly></label>
+        <div id="installer-media-current" class="guest-template-info">Kurulum medyasi bagli degil.</div>
+      </div>
+
+      <section class="installer-source-panel">
+        <div class="section-heading compact-heading">
+          <div><h3>Resmi ISO Katalogu</h3><p>Secilen VM profiline uygun resmi kaynagi kullanin.</p></div>
+          <span id="installer-media-provider" class="source-provider-badge">-</span>
+        </div>
+        <div id="installer-media-source-card" class="installer-source-card">
+          <div id="installer-media-compatibility" class="installer-compatibility-grid">
+            <div><span>Host</span><strong id="installer-media-host-architecture">-</strong></div>
+            <div><span>VM</span><strong id="installer-media-vm-architecture">-</strong></div>
+            <div><span>Firmware</span><strong id="installer-media-firmware">-</strong></div>
+            <div><span>Onerilen ISO</span><strong id="installer-media-recommended-label">-</strong></div>
+          </div>
+          <div class="installer-source-summary">
+            <div>
+              <strong id="installer-media-source-label">Medya kaynagi yukleniyor</strong>
+              <p id="installer-media-source-note">Guest Catalog bilgisi okunuyor.</p>
+            </div>
+            <button id="installer-media-options-toggle" class="ghost-button hidden" type="button">Farkli Surum / Medya Sec</button>
+          </div>
+          <div id="installer-media-options-panel" class="installer-options-panel hidden">
+            <label><span>Indirme Secenegi</span><select id="installer-media-source-select"></select></label>
+            <p id="installer-media-option-note" class="form-note">Secilen medya VM template kaydini degistirmez; yalniz kurulum ISO'sunu degistirir.</p>
+          </div>
+          <div id="installer-media-download-progress" class="download-progress-card hidden" aria-live="polite">
+            <div class="download-progress-head"><div><strong data-download-role="title">ISO indiriliyor</strong><span data-download-role="stage">Indirme bekleniyor</span></div><span class="download-progress-percent" data-download-role="percent">--</span></div>
+            <div class="download-progress-track is-indeterminate" data-download-role="track" role="progressbar" aria-label="Kurulum ISO indirme ilerlemesi" aria-valuemin="0" aria-valuemax="100"><span data-download-role="bar"></span></div>
+            <div class="download-progress-stats"><span data-download-role="bytes">Boyut bekleniyor</span><span data-download-role="speed">Hiz -</span><span data-download-role="eta">ETA -</span><span data-download-role="elapsed">Sure -</span></div>
+            <p class="download-progress-detail" data-download-role="detail">Indirme gorevi bekleniyor.</p>
+          </div>
+          <div class="section-actions installer-source-actions">
+            <button id="installer-media-download-button" class="primary-button hidden" type="button">ISO Indir</button>
+            <button id="installer-media-cancel-download-button" class="danger-button hidden" type="button">Indirmeyi Durdur</button>
+            <button id="installer-media-attach-downloaded-button" class="primary-button hidden" type="button" disabled>Indirilen ISO'yu Bagla</button>
+            <button id="installer-media-official-page-button" class="ghost-button hidden" type="button">Resmi Indirme Sayfasini Ac</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="installer-local-panel">
+        <div class="section-heading compact-heading"><div><h3>Yerel ISO</h3><p>Daha once indirdiginiz ISO dosyasini da kullanabilirsiniz.</p></div></div>
+        <label><span>ISO Dosyasi</span><div class="input-action-row"><input id="installer-media-path" readonly placeholder="ISO secilmedi"><button id="installer-media-pick-button" class="ghost-button" type="button">ISO Sec</button></div></label>
+        <div class="modal-actions installer-local-actions">
+          <button id="installer-media-eject-button" class="danger-button hidden" type="button">ISO Cikar ve Diskten Baslat</button>
+          <button id="installer-media-attach-button" class="ghost-button" type="button" disabled>Yerel ISO'yu Bagla</button>
+          <button id="installer-media-next-button" class="primary-button" type="button" disabled>Ileri: Ag</button>
+        </div>
+      </section>
+      <p class="form-note">Kurulum tamamlandiktan sonra VM'i durdurup "ISO Cikar ve Diskten Baslat" kullanin. Bu islem kopyalanan ISO dosyasini veya sanal diski silmez. TurkuazVM host ve VM mimarisini karsilastirarak uyumlu medyayi onerir; direct katalog kaynaklari resmi SHA-256 listesiyle dogrulanir.</p>
+    </div>
+  </div>
+
+  <div id="configuration-complete-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="configuration-complete-title">
+    <div class="modal-card configuration-complete-card">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">VM OLUSTURMA / TAMAMLANDI</p>
+          <h2 id="configuration-complete-title">Temel Yapilandirma Tamamlandi</h2>
+          <p id="configuration-complete-subtitle" class="modal-subtitle">VM kaynaklari sirali olarak yapilandirildi.</p>
+        </div>
+        <button id="close-configuration-complete-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div class="wizard-progress configuration-wizard-progress complete-progress" aria-label="VM olusturma tamamlandi">
+        <span class="done">VM</span><span class="done">Disk</span><span id="configuration-complete-media-step" class="done hidden">Kurulum Medyasi</span><span id="configuration-complete-image-step" class="done hidden">Android Image</span><span class="done">Ag</span><span class="active">Ozet</span>
+      </div>
+      <div class="configuration-summary-grid">
+        <div><span>VM</span><strong id="configuration-complete-vm">-</strong></div>
+        <div><span>Disk</span><strong id="configuration-complete-disk">-</strong></div>
+        <div><span>Ag</span><strong id="configuration-complete-network">-</strong></div>
+        <div><span>Kurulum Medyasi</span><strong id="configuration-complete-media">Uygulanmaz</strong></div>
+        <div><span>Android Image</span><strong id="configuration-complete-image">Uygulanmaz</strong></div>
+      </div>
+      <p class="form-note">Bu ozet VM, disk, kurulum medyasi veya Android image ve ag kaynaklarini kapsar.</p>
+      <div class="modal-actions">
+        <button id="configuration-complete-done" class="primary-button" type="button">VM Listesine Don</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="logs-modal" class="modal-backdrop workspace-page-modal hidden" role="region" aria-labelledby="logs-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div><p class="eyebrow">TANI MERKEZI</p><h2 id="logs-title">Gunlukler</h2><p class="modal-subtitle">Baslatici, motor ve Android imaj gunluklerini tek merkezden goruntuleyin.</p></div>
+        <button id="close-logs-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div class="section-heading"><div><h3>Gunluk Dosyalari</h3><p id="logs-summary">Loglar yukleniyor.</p></div><button id="logs-refresh-button" class="ghost-button" type="button">Yenile</button></div>
+      <div id="logs-list" class="snapshot-list logs-list"></div>
+      <div id="logs-empty" class="compact-empty hidden">Log dosyasi bulunamadi.</div>
+    </div>
+  </div>
+
+  <div id="gpu-modal" class="modal-backdrop workspace-page-modal hidden" role="region" aria-labelledby="gpu-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">AYARLAR</p>
+          <h2 id="gpu-title">TurkuazVM Ayarlari</h2>
+          <p class="modal-subtitle">Indirme konumlarini yonetin. Kaynak/mirror ve donanim ayrintilari Uzman Modu'nda gorunur.</p>
+        </div>
+        <button id="close-gpu-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+
+      <section class="settings-section" aria-labelledby="download-settings-title">
+        <div class="section-heading compact-heading"><div><h3 id="download-settings-title">Indirmeler ve Kaynaklar</h3><p>ISO, Android image ve onbellek dosyalarinin kaydedilecegi konumlari belirleyin.</p></div></div>
+        <form id="download-settings-form" class="settings-form">
+          <label><span>Kurulum ISO klasoru</span><input id="download-installer-media-path" type="text" autocomplete="off"></label>
+          <label><span>Android image klasoru</span><input id="download-android-images-path" type="text" autocomplete="off"></label>
+          <label class="expert-only"><span>Artifact cache klasoru</span><input id="download-artifact-cache-path" type="text" autocomplete="off"></label>
+          <div class="settings-source-summary standard-only"><span>Android indirme kaynagi</span><strong id="download-source-summary">Otomatik / Google resmi kaynak</strong></div>
+          <label class="expert-only"><span>Android CI kaynak / mirror URL</span><input id="download-android-ci-base-url" type="url" autocomplete="off" ></label>
+          <label class="checkbox-row expert-only"><input id="download-official-fallback" type="checkbox"><span>Mirror basarisizsa Google resmi kaynagina geri don</span></label>
+          <p id="download-settings-note" class="form-note">Yol ve kaynak degisiklikleri Engine yeniden baslatildiginda uygulanir.</p>
+          <div class="settings-actions"><button id="download-settings-save" class="primary-button" type="submit">Kaydet</button></div>
+        </form>
+      </section>
+
+      <section class="settings-section expert-only" aria-labelledby="gpu-capabilities-title">
+        <div class="section-heading compact-heading"><div><h3 id="gpu-capabilities-title">GPU ve Vulkan</h3><p>Host ve QEMU grafik yeteneklerinin teknik ozeti.</p></div></div>
+        <div class="gpu-status-grid">
+          <div><span>Istenen</span><strong id="gpu-requested">-</strong></div>
+          <div><span>Etkin</span><strong id="gpu-effective">-</strong></div>
+          <div><span>Sunucu Bellegi</span><strong id="gpu-hostmem">-</strong></div>
+          <div><span>Vulkan</span><strong id="gpu-vulkan">-</strong></div>
+          <div><span>Virtio 2D</span><strong id="gpu-virtio">-</strong></div>
+          <div><span>VirGL</span><strong id="gpu-virgl">-</strong></div>
+          <div><span>Venus</span><strong id="gpu-venus">-</strong></div>
+          <div><span>Rutabaga</span><strong id="gpu-rutabaga">-</strong></div>
+          <div><span>GfxStream Vulkan</span><strong id="gpu-gfxstream">-</strong></div>
+          <div><span>Android GfxStream</span><strong id="gpu-android-gfxstream">-</strong></div>
+        </div>
+        <div id="gpu-warning" class="error-banner hidden"></div>
+        <div class="android-section">
+          <div class="section-heading compact-heading"><div><h3>Vulkan Denetimi</h3><p id="gpu-vulkan-summary">vulkaninfo ozeti yok.</p></div></div>
+          <p class="form-note">GfxStream Android capsetleri experimental kabul edilir ve config'te explicit opt-in olmadan aktif edilmez.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="connection-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="connection-title">
+    <div class="modal-card connection-card">
+      <div class="modal-heading"><div><p class="eyebrow">BAGLANTI MERKEZI</p><h2 id="connection-title">Baglanti Merkezi</h2><p id="connection-subtitle" class="modal-subtitle">SSH ve RDP erisimini tek ekrandan hazirlayin, test edin ve acin. Calisan Turkuaz NAT VM icin gerekli port yayini onayla otomatik uygulanir.</p></div><button id="close-connection-modal" class="icon-button" type="button">X</button></div>
+      <div class="connection-summary connection-summary-wide"><span><em>VM</em><strong id="connection-vm">-</strong></span><span><em>Durum</em><strong id="connection-vm-state">-</strong></span><span><em>VM IPv4</em><strong id="connection-ip">-</strong></span><span><em>Ag</em><strong id="connection-network">-</strong></span></div>
+      <div class="connection-power-actions"><button id="connection-start-vm" class="ghost-button hidden" type="button">VM'yi Baslat</button></div>
+
+      <section class="connection-service-panel">
+        <div class="connection-service-heading"><div><h3>SSH</h3><p id="connection-ssh-target">Hedef bekleniyor</p></div><span id="connection-ssh-status" class="connection-status">Bekleniyor</span></div>
+        <label class="connection-user"><span>SSH kullanici adi</span><input id="connection-user" value="" placeholder="ornek: burak" autocomplete="off"></label>
+        <div class="connection-command"><code id="connection-ssh-command">SSH erisimi hazir degil</code><button id="copy-ssh-command" class="ghost-button" type="button">Komutu Kopyala</button></div>
+        <div class="connection-actions">
+          <button id="prepare-ssh-access" class="ghost-button" type="button">SSH Erisimini Hazirla</button>
+          <button id="test-ssh-connection" class="ghost-button" type="button">Baglantiyi Test Et</button>
+          <button id="open-ssh-connection" class="primary-button" type="button">SSH ile Baglan</button>
+        </div>
+        <p id="connection-ssh-hint" class="form-note">Turkuaz NAT kullaniliyorsa host port yayini gerekir.</p>
+      </section>
+
+      <section class="connection-service-panel">
+        <div class="connection-service-heading"><div><h3>RDP</h3><p id="connection-rdp-target">Hedef bekleniyor</p></div><span id="connection-rdp-status" class="connection-status">Bekleniyor</span></div>
+        <div class="connection-command"><code id="connection-rdp-command">RDP erisimi hazir degil</code><button id="copy-rdp-command" class="ghost-button" type="button">Komutu Kopyala</button></div>
+        <div class="connection-actions">
+          <button id="prepare-rdp-access" class="ghost-button" type="button">RDP Erisimini Hazirla</button>
+          <button id="test-rdp-connection" class="ghost-button" type="button">Baglantiyi Test Et</button>
+          <button id="open-rdp-connection" class="primary-button" type="button">RDP ile Baglan</button>
+        </div>
+        <p id="connection-rdp-hint" class="form-note">Windows guest icinde Uzak Masaustu etkin olmalidir.</p>
+      </section>
+    </div>
+  </div>
+
+  <div id="create-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="create-title">
+    <form id="create-form" class="modal-card modal-wide create-wizard-card create-wizard-v2">
+      <div class="modal-heading">
+        <div><p class="eyebrow">YENI SANAL MAKINE</p><h2 id="create-title">Yeni Sanal Makine</h2><p class="modal-subtitle">Sistemi secin, kaynaklari kontrol edin ve olusturun. Teknik ayrintilar guvenli varsayilanlarla otomatik hazirlanir.</p></div>
+        <button id="close-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <div id="create-config-panel" class="create-step-wizard">
+        <div class="wizard-progress create-shell-progress create-step-progress create-progress-v2" aria-label="VM olusturma adimlari">
+          <span class="active" data-create-progress="catalog">1 Sistem</span>
+          <span data-create-progress="resource">2 Kaynaklar</span>
+          <span data-create-progress="summary">3 Olustur</span>
+        </div>
+        <div class="create-step-stage create-stage-v2">
+          <section id="create-step-catalog" class="create-page-step create-page-group" data-create-section="catalog">
+            <div class="create-v2-section-intro"><div><span class="create-v2-step-number">01</span><div><h3>Sistem ve Ad</h3><p>Kurulacak sistemi ve sanal makinenin gorunen adini secin.</p></div></div></div>
+            <div class="create-v2-group-card"><div class="compact-heading create-section-heading">
+              <div class="create-heading-copy"><span class="create-heading-icon">OS</span><div><h3>Isletim Sistemini Sec</h3><p>Once kurulacak sistemi secin. Sonraki adimlar bu profile gore otomatik doldurulur.</p></div></div>
+              
+            </div>
+            <div class="form-grid wizard-select-grid create-step-system-grid">
+              <label><span>Sistem Ailesi</span><select id="guest-family-select"></select></label>
+              <label><span>Urun / Dagitim</span><select id="guest-product-select"></select></label>
+              <label><span>Surum</span><select id="guest-release-select"></select></label>
+              <label><span>Profil / Edition</span><select id="guest-profile-select"></select></label>
+              <label class="expert-only"><span>Mimari</span><select id="guest-architecture" disabled><option>-</option></select></label>
+            </div>
+            <input id="vm-guest-profile" name="guest_profile" type="hidden" value="linux">
+            <input id="vm-guest-template-id" name="guest_template_id" type="hidden">
+            <div id="guest-template-info" class="guest-template-info">Guest katalogu yukleniyor.</div></div>
+            <div class="create-v2-group-card create-v2-identity"><div class="compact-heading create-section-heading">
+              <div class="create-heading-copy"><span class="create-heading-icon">ID</span><div><h3>Sanal Makine Kimligi</h3><p>Makinenin gorunen adini ve sistem icindeki kalici kimligini belirleyin.</p></div></div>
+              
+            </div>
+            <div class="form-grid create-step-identity-grid">
+              <label><span>Makine adi</span><input id="vm-name" name="name" value="Ubuntu Dev" required maxlength="64"></label>
+              <label class="expert-only"><span>Makine ID</span><input id="vm-id" name="vm_id" value="ubuntu-dev" required pattern="[A-Za-z0-9._-]+"></label>
+            </div>
+            <p class="form-note">Makine ID yalniz harf, rakam, nokta, alt cizgi ve tire icerebilir. Daha sonra disk ve ag kaynaklari bu kimlikten turetilir.</p></div>
+          </section>
+          <section id="create-step-resource" class="create-page-step create-page-group hidden" data-create-section="resource">
+            <div class="create-v2-section-intro"><div><span class="create-v2-step-number">02</span><div><h3>Kaynaklar ve Kurulum</h3><p>Onerilen ayarlar hazir. Gerekiyorsa kaynak, medya veya ag tercihini degistirin.</p></div></div></div>
+            <div class="create-v2-group-card"><div class="compact-heading create-section-heading">
+              <div class="create-heading-copy"><span class="create-heading-icon">CPU</span><div><h3>Donanim Kaynaklari</h3><p>Katalog onerileri otomatik gelir; isterseniz bu adimda degistirebilirsiniz.</p></div></div>
+              
+            </div>
+            <div class="create-resource-grid">
+              <label class="create-resource-card"><span>vCPU</span><input id="vm-cpu" name="vcpu_count" type="number" value="4" min="1" max="64" required></label>
+              <label class="create-resource-card"><span>RAM (MiB)</span><input id="vm-memory" name="memory_mib" type="number" value="8192" min="512" step="512" required></label>
+              <div class="create-resource-card create-resource-card-note"><span>Onerilen Disk</span><strong id="create-recommended-disk">-</strong><small>Disk bir sonraki yapilandirma sihirbazinda olusturulur.</small></div>
+            </div>
+            <div id="guest-recommendation" class="guest-recommendation"></div></div>
+            <details class="create-advanced-panel" open><summary>Disk ve kurulum medyasi</summary><div class="create-advanced-content"><div class="compact-heading create-section-heading">
+              <div class="create-heading-copy"><span class="create-heading-icon">DSK</span><div><h3>Sanal Disk</h3><p>VM icin ilk sistem diskinin boyutunu belirleyin.</p></div></div>
+              
+            </div>
+            <div class="create-disk-plan-card">
+              <label><span>Disk Boyutu (GiB)</span><input id="create-disk-size" type="number" value="64" min="8" max="4096" required></label>
+              <div><span>Disk ID</span><strong id="create-disk-id-preview">new-vm-disk-01</strong><small>TurkuazVM kaynak isimlendirme politikasina gore otomatik uretilir.</small></div>
+              <div><span>Format</span><strong>QCOW2</strong><small>Runtime disk formati.</small></div>
+            </div><div class="compact-heading create-section-heading">
+              <div class="create-heading-copy"><span class="create-heading-icon">ISO</span><div><h3>Kurulum Medyasi / Image</h3><p>Resmi ISO, yerel ISO veya Android Image secimini bu adimda tamamlayin.</p></div></div>
+              
+            </div>
+            <div id="create-media-iso-panel" class="create-media-panel">
+              <label><span>Medya Yontemi</span><select id="create-media-mode"><option value="official">Resmi / Onerilen ISO</option><option value="local">Yerel ISO</option><option value="later">Daha Sonra Ayarla</option></select></label>
+              <div id="create-media-official-panel" class="create-media-subpanel">
+                <label><span>Resmi Medya</span><select id="create-media-source-select"></select></label>
+                <div class="create-media-actions">
+                  <button id="create-media-download-button" class="primary-button" type="button">ISO'yu Indir</button>
+                  <button id="create-media-cancel-button" class="danger-button hidden" type="button">Indirmeyi Durdur</button>
+                </div>
+                <div id="create-media-download-progress" class="download-progress-card hidden" aria-live="polite">
+                  <div class="download-progress-head"><div><strong data-download-role="title">ISO indiriliyor</strong><span data-download-role="stage">Indirme bekleniyor</span></div><span class="download-progress-percent" data-download-role="percent">--</span></div>
+                  <div class="download-progress-track is-indeterminate" data-download-role="track" role="progressbar" aria-label="Yeni VM kurulum ISO indirme ilerlemesi" aria-valuemin="0" aria-valuemax="100"><span data-download-role="bar"></span></div>
+                  <div class="download-progress-stats"><span data-download-role="bytes">Boyut bekleniyor</span><span data-download-role="speed">Hiz -</span><span data-download-role="eta">ETA -</span><span data-download-role="elapsed">Sure -</span></div>
+                  <p class="download-progress-detail" data-download-role="detail">Indirme gorevi bekleniyor.</p>
+                </div>
+                <p id="create-media-source-note" class="form-note">Katalog medyasi yukleniyor.</p>
+              </div>
+              <div id="create-media-local-panel" class="create-media-subpanel hidden">
+                <label><span>Yerel ISO</span><div class="input-action-row"><input id="create-media-local-path" readonly placeholder="ISO secilmedi"><button id="create-media-pick-button" class="ghost-button" type="button">ISO Sec</button></div></label>
+              </div>
+              <div id="create-media-later-panel" class="create-media-subpanel hidden"><p class="form-note">VM medya baglanmadan olusturulur. Daha sonra Kurulum Medyasi ekranindan ISO baglayabilirsiniz.</p></div>
+            </div>
+            <div id="create-media-android-panel" class="create-media-panel hidden">
+              <label><span>Android Image</span><select id="create-android-image-select"></select></label>
+              <button id="create-android-images-refresh" class="ghost-button" type="button">Android Image Hazirla</button>
+              <div id="create-android-download-progress" class="download-progress-card hidden" aria-live="polite">
+                <div class="download-progress-head">
+                  <div><strong id="create-android-progress-title" data-download-role="title">Android image hazirlaniyor</strong><span id="create-android-progress-stage" data-download-role="stage">Asama bekleniyor</span></div>
+                  <span id="create-android-progress-percent" class="download-progress-percent" data-download-role="percent">--</span>
+                </div>
+                <div id="create-android-progress-track" class="download-progress-track is-indeterminate" data-download-role="track" role="progressbar" aria-label="Android image indirme ilerlemesi" aria-valuemin="0" aria-valuemax="100">
+                  <span id="create-android-progress-bar" data-download-role="bar"></span>
+                </div>
+                <div class="download-progress-stats">
+                  <span id="create-android-progress-bytes" data-download-role="bytes">Boyut bekleniyor</span>
+                  <span id="create-android-progress-speed" data-download-role="speed">Hiz -</span>
+                  <span id="create-android-progress-eta" data-download-role="eta">ETA -</span>
+                  <span id="create-android-progress-elapsed" data-download-role="elapsed">Sure -</span>
+                </div>
+                <p id="create-android-progress-detail" class="download-progress-detail" data-download-role="detail">Android CI gorevi baslatiliyor.</p>
+                <div class="download-progress-actions">
+                  <button id="create-android-progress-cancel" class="danger-button" type="button">Iptal</button>
+                  <button id="create-android-progress-log" class="ghost-button" type="button" disabled>Logu Ac</button>
+                </div>
+              </div>
+              <p id="create-android-image-note" class="form-note">Secilen Android surumune uygun image durumu kontrol ediliyor.</p>
+            </div></div></details>
+            <details class="create-advanced-panel"><summary>Gelismis ag ayarlari</summary><div class="create-advanced-content"><div class="compact-heading create-section-heading">
+              <div class="create-heading-copy"><span class="create-heading-icon">NET</span><div><h3>Ag Profili</h3><p>VM'nin ilk ag baglantisini secin. Varsayilan Turkuaz NAT QEMU'nun dahili NAT motorunu kullanir; Windows ve Linux hostlarda ek TAP surucusu gerektirmez.</p></div></div>
+              
+            </div>
+            <div class="form-grid create-network-plan-grid">
+              <label><span>Ag Profili</span><select id="create-network-profile"><option value="managed_nat">Turkuaz NAT - QEMU NAT + Internet</option><option value="private">Izole - VM/Sunucu</option><option value="bridge">Bridge / Mevcut TAP</option><option value="user_nat">QEMU NAT - Basit / Eski Uyumluluk</option></select></label>
+              <label class="expert-only"><span>NIC / Baglanti ID</span><input id="create-network-id" value="new-vm-net-01" required pattern="[A-Za-z0-9._-]+"></label>
+              <label id="create-network-bridge-wrap" class="hidden"><span>Bridge Adi</span><input id="create-network-bridge-name" placeholder="Network Bridge"></label>
+              <label id="create-network-tap-wrap" class="hidden"><span>TAP Adi</span><input id="create-network-tap-name" placeholder="TurkuazVM-TAP"></label>
+            </div>
+            <p class="form-note">Turkuaz NAT secildiginde QEMU dahili NAT kullanilir ve IPAM otomatik private IPv4 ayirir. Bridge/TAP yalnizca gelismis fiziksel LAN senaryolari icindir.</p></div></details>
+          </section>
+          <section id="create-step-summary" class="create-page-step create-page-group hidden" data-create-section="summary">
+            <div class="create-v2-section-intro"><div><span class="create-v2-step-number">03</span><div><h3>Kontrol Et ve Olustur</h3><p>Son ayarlari kontrol edin. TurkuazVM VM, disk, medya ve ag planini tek islemde uygular.</p></div></div></div>
+            <div class="create-v2-group-card"><div class="compact-heading create-section-heading">
+              <div class="create-heading-copy"><span class="create-heading-icon">OK</span><div><h3>Bilgileri Kontrol Et</h3><p>VM olusturulmadan once secimleri son kez kontrol edin.</p></div></div>
+              
+            </div>
+            <div class="create-review-grid">
+              <div><span>Sistem</span><strong id="create-selected-family">-</strong></div>
+              <div><span>Dagitim</span><strong id="create-selected-product">-</strong></div>
+              <div><span>Surum</span><strong id="create-selected-release">-</strong></div>
+              <div><span>Profil</span><strong id="create-selected-profile">-</strong></div>
+              <div><span>Mimari</span><strong id="create-selected-architecture">-</strong></div>
+              <div><span>Firmware</span><strong id="create-selected-firmware">-</strong></div>
+              <div><span>Makine adi</span><strong id="create-review-name">-</strong></div>
+              <div><span>Makine ID</span><strong id="create-review-id">-</strong></div>
+              <div><span>vCPU</span><strong id="create-review-cpu">-</strong></div>
+              <div><span>RAM</span><strong id="create-review-memory">-</strong></div>
+              <div><span>Disk</span><strong id="create-review-disk">-</strong></div>
+              <div><span>Medya / Image</span><strong id="create-review-media">-</strong></div>
+              <div><span>Ag</span><strong id="create-review-network">-</strong></div>
+            </div>
+            <div class="wizard-summary create-servbay-summary">
+              <strong>Olusturma Ozeti</strong>
+              <span id="create-summary">Katalog secimi bekleniyor.</span>
+            </div>
+            <div class="create-next-plan-grid">
+              <div><span>Sonraki</span><strong id="create-next-disk">Disk yapilandirmasi</strong></div>
+              <div><span>Medya / Image</span><strong id="create-next-media">Bekleniyor</strong></div>
+              <div><span>Ag</span><strong id="create-next-network">Turkuaz NAT</strong></div>
+            </div></div>
+          </section>
+        </div>
+        <div class="modal-actions create-servbay-actions create-step-actions">
+          <button id="cancel-create" class="ghost-button" type="button">Vazgec</button>
+          <div class="create-step-actions-right"><button id="create-back-button" class="ghost-button hidden" type="button">Geri</button><button id="create-next-button" class="primary-button" type="button">Devam Et</button><button id="create-submit" class="primary-button hidden" type="submit">VM Olustur</button></div>
+        </div>
+      </div>
+      <div id="create-complete-panel" class="create-complete-panel hidden">
+        <div class="create-success-icon">OK</div>
+        <h3>VM olusturuldu</h3>
+        <p id="create-complete-text">Sanal makine kaydedildi. Simdi disk ve ag yapilandirmasina gecebilirsiniz.</p>
+        <div class="post-create-actions">
+          <button id="create-add-disk" class="primary-button hidden" type="button">Yapilandirmaya Basla</button>
+          <button id="create-finish" class="primary-button" type="button">Tamam</button>
+        </div>
+        <p class="form-note">VM, disk, secilen medya/image ve ag profili tek wizard planindan olusturuldu.</p>
+      </div>
+    </form>
+  </div>
+  <div id="vm-edit-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="vm-edit-title">
+    <form id="vm-edit-form" class="modal-card">
+      <div class="modal-heading">
+        <div><p class="eyebrow">VM CONFIGURATION</p><h2 id="vm-edit-title">Sanal Makineyi Duzenle</h2><p id="vm-edit-subtitle" class="modal-subtitle">Durmus VM icin temel kaynaklari guncelleyin.</p></div>
+        <button id="close-vm-edit-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+      <input id="vm-edit-id" type="hidden">
+      <div class="form-grid">
+        <label><span>Ad</span><input id="vm-edit-name" required maxlength="64"></label>
+        <label><span>vCPU</span><input id="vm-edit-cpu" type="number" min="1" max="64" required></label>
+        <label><span>RAM (MiB)</span><input id="vm-edit-memory" type="number" min="512" step="512" required></label>
+      </div>
+      <div class="modal-actions"><button class="primary-button" type="submit">Kaydet</button></div>
+    </form>
+  </div>
+
+  <div id="snapshot-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="snapshot-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">SNAPSHOT MANAGER</p>
+          <h2 id="snapshot-title">Snapshotlar</h2>
+          <p id="snapshot-vm-label" class="modal-subtitle">-</p>
+        </div>
+        <button id="close-snapshot-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+
+      <form id="snapshot-form" class="inline-form">
+        <label>
+          <span>Snapshot adi</span>
+          <input id="snapshot-name" value="Guvenli Nokta" required maxlength="64">
+        </label>
+        <label>
+          <span>Snapshot ID</span>
+          <input id="snapshot-id" value="guvenli-nokta" required pattern="[A-Za-z0-9._-]+">
+        </label>
+        <button class="primary-button" type="submit">Snapshot Al</button>
+      </form>
+
+      <p class="form-note">Snapshot islemleri yalniz Stopped VM ve QCOW2 disklerde calisir. Multi-disk VM'de ayni snapshot ID tum disklere uygulanir.</p>
+      <div id="snapshot-list" class="snapshot-list"></div>
+      <div id="snapshot-empty" class="compact-empty hidden">Bu VM icin snapshot yok.</div>
+    </div>
+  </div>
+
+  <div id="clone-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="clone-title">
+    <form id="clone-form" class="modal-card">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">CLONE WIZARD</p>
+          <h2 id="clone-title">VM Klonla</h2>
+          <p id="clone-source-label" class="modal-subtitle">-</p>
+        </div>
+        <button id="close-clone-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+
+      <label>
+        <span>Yeni makine adi</span>
+        <input id="clone-name" required maxlength="64">
+      </label>
+      <label>
+        <span>Yeni makine ID</span>
+        <input id="clone-id" required pattern="[A-Za-z0-9._-]+">
+      </label>
+      <label>
+        <span>Clone modu</span>
+        <select id="clone-mode">
+          <option value="full">Full Clone - bagimsiz disk</option>
+          <option value="linked">Linked Clone - backing chain</option>
+        </select>
+      </label>
+      <p class="form-note">Guvenlik icin network adapterleri klona kopyalanmaz. Linked clone hedefteki immutable base QCOW2 dosyasina bagimlidir; kaynak VM sonradan bagimsiz calisabilir.</p>
+      <div class="modal-actions">
+        <button id="cancel-clone" class="ghost-button" type="button">Vazgec</button>
+        <button class="primary-button" type="submit">Klonla</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="android-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="android-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">ANDROID RUNTIME</p>
+          <h2 id="android-title">Android Runtime</h2>
+          <p id="android-vm-label" class="modal-subtitle">-</p>
+        </div>
+        <button id="close-android-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+
+      <div class="android-status-grid">
+        <div><span>Profile</span><strong id="android-profile-status">Yapilandirilmadi</strong></div>
+        <div><span>ADB</span><strong id="android-device-status">-</strong></div>
+        <div><span>ABI</span><strong id="android-abi-status">-</strong></div>
+        <div><span>SDK</span><strong id="android-sdk-status">-</strong></div>
+        <div><span>Guest Agent</span><strong id="android-guest-agent-status">-</strong></div>
+        <div><span>Android Image</span><strong id="android-image-assignment-status">Atanmadi</strong></div>
+      </div>
+
+
+      <section class="android-section">
+        <div class="section-heading compact-heading">
+          <div><h3>Android Image Assignment</h3><p>Yalniz READY image, Stopped durumundaki Android VM'ye atanabilir.</p></div>
+          <div class="section-actions">
+            <button id="android-image-assignment-refresh" class="ghost-button" type="button">Image'lari Yenile</button>
+            <button id="android-image-assign" class="primary-button" type="button">Ata</button>
+          </div>
+        </div>
+        <label><span>READY image</span><select id="android-image-select"></select></label>
+      </section>
+
+      <form id="android-profile-form" class="android-profile-form">
+        <div class="form-grid">
+          <label><span>Genislik</span><input id="android-width" type="number" value="1920" min="480" max="7680"></label>
+          <label><span>Yukseklik</span><input id="android-height" type="number" value="1080" min="480" max="4320"></label>
+          <label><span>Density DPI</span><input id="android-density" type="number" value="320" min="120" max="1000"></label>
+          <label><span>Hedef FPS</span><input id="android-fps" type="number" value="60" min="30" max="240"></label>
+        </div>
+        <div class="modal-actions android-actions">
+          <button id="android-status-button" class="ghost-button" type="button">Durum</button>
+          <button id="android-ready-button" class="ghost-button" type="button">Hazir Olana Kadar Bekle</button>
+          <button id="android-display-button" class="ghost-button" type="button">Ekran Profilini Uygula</button>
+          <button id="android-gaming-input-button" class="ghost-button" type="button">Gaming Input</button>
+          <button class="primary-button" type="submit">Runtime Hazirla</button>
+        </div>
+      </form>
+
+      <section class="android-section">
+        <div class="section-heading compact-heading">
+          <div><h3>Game Catalog / Compatibility</h3><p>Oyun profili runtime ve keymapping onerilerini uygular; emulator kimligini gizlemez.</p></div>
+          <div class="section-actions">
+            <button id="game-catalog-refresh" class="ghost-button" type="button">Katalog</button>
+            <button id="game-detect-button" class="ghost-button" type="button">Kurulu Oyunlari Tara</button>
+          </div>
+        </div>
+        <div id="game-catalog-result" class="form-note">Katalog henuz yuklenmedi.</div>
+        <div id="game-catalog-list" class="snapshot-list"></div>
+        <div id="game-catalog-empty" class="compact-empty hidden">Uyumlu katalog kaydi bulunamadi.</div>
+      </section>
+
+      <section class="android-section">
+        <div class="section-heading compact-heading"><div><h3>APK / Paketler</h3><p>APK yolu android.package_root altinda relative olmalidir.</p></div></div>
+        <form id="android-apk-form" class="inline-form android-apk-form">
+          <label><span>APK relative path</span><input id="android-apk-path" value="pubg-mobile.apk" required></label>
+          <button class="primary-button" type="submit">APK Kur</button>
+          <button id="android-packages-refresh" class="ghost-button" type="button">Paketleri Yenile</button>
+        </form>
+        <div id="android-package-list" class="snapshot-list"></div>
+        <div id="android-package-empty" class="compact-empty hidden">Paket listesi bos veya cihaz hazir degil.</div>
+      </section>
+
+      <section class="android-section">
+        <div class="section-heading compact-heading"><div><h3>Input Test</h3><p>ADB tekil input adapterini test eder. Gaming Input profili ayri editor ile yonetilir.</p></div></div>
+        <form id="android-tap-form" class="inline-form android-tap-form">
+          <label><span>X</span><input id="android-tap-x" type="number" value="960" min="0"></label>
+          <label><span>Y</span><input id="android-tap-y" type="number" value="540" min="0"></label>
+          <button class="ghost-button" type="submit">Tap Gonder</button>
+        </form>
+      </section>
+    </div>
+  </div>
+
+
+  <div id="gaming-input-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gaming-input-title">
+    <div class="modal-card modal-wide">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">GAMING INPUT FOUNDATION</p>
+          <h2 id="gaming-input-title">Keymapping Editor</h2>
+          <p id="gaming-input-vm-label" class="modal-subtitle">-</p>
+        </div>
+        <button id="close-gaming-input-modal" class="icon-button" type="button" aria-label="Kapat">X</button>
+      </div>
+
+      <div class="android-status-grid">
+        <div><span>Raw Keyboard</span><strong id="gaming-cap-keyboard">-</strong></div>
+        <div><span>Raw Mouse</span><strong id="gaming-cap-mouse">-</strong></div>
+        <div><span>Multi Touch</span><strong id="gaming-cap-multitouch">-</strong></div>
+        <div><span>Gamepad</span><strong id="gaming-cap-gamepad">-</strong></div>
+      </div>
+
+      <form id="gaming-input-profile-form" class="android-profile-form">
+        <label>
+          <span>Android package (opsiyonel)</span>
+          <input id="gaming-package-name" placeholder="com.example.game" maxlength="255">
+        </label>
+        <div class="section-heading compact-heading"><div><h3>WASD Virtual Joystick</h3><p>Koordinatlar 0-10000 normalized uzayindadir.</p></div></div>
+        <div class="form-grid">
+          <label><span>Aktif</span><input id="gaming-joystick-enabled" type="checkbox" checked></label>
+          <label><span>Center X</span><input id="gaming-joystick-x" type="number" value="1800" min="0" max="10000"></label>
+          <label><span>Center Y</span><input id="gaming-joystick-y" type="number" value="8000" min="0" max="10000"></label>
+          <label><span>Radius</span><input id="gaming-joystick-radius" type="number" value="1100" min="1" max="5000"></label>
+        </div>
+
+        <div class="section-heading compact-heading"><div><h3>Relative Mouse Look</h3><p>F1 capture acikken raw mouse delta kamera touch planina cevrilir.</p></div></div>
+        <div class="form-grid">
+          <label><span>Aktif</span><input id="gaming-look-enabled" type="checkbox" checked></label>
+          <label><span>Anchor X</span><input id="gaming-look-x" type="number" value="7200" min="0" max="10000"></label>
+          <label><span>Anchor Y</span><input id="gaming-look-y" type="number" value="5000" min="0" max="10000"></label>
+          <label><span>Sens X x1000</span><input id="gaming-look-sens-x" type="number" value="1000" min="50" max="5000"></label>
+          <label><span>Sens Y x1000</span><input id="gaming-look-sens-y" type="number" value="1000" min="50" max="5000"></label>
+        </div>
+
+        <section class="android-section">
+          <div class="section-heading compact-heading"><div><h3>Bindings</h3><p>Tap ve Android key ADB fallback ile calisabilir; Hold Touch guest-agent ister.</p></div></div>
+          <div class="gaming-binding-editor">
+            <label><span>Kaynak</span>
+              <select id="gaming-binding-source">
+                <option value="key:space">Space</option><option value="key:f">F</option><option value="key:r">R</option>
+                <option value="key:c">C</option><option value="key:z">Z</option><option value="key:q">Q</option><option value="key:e">E</option>
+                <option value="key:digit1">1</option><option value="key:digit2">2</option><option value="key:digit3">3</option>
+                <option value="mouse_button:left">Mouse Left</option><option value="mouse_button:right">Mouse Right</option>
+                <option value="gamepad_button:0">Gamepad South / A</option><option value="gamepad_button:1">Gamepad East / B</option>
+                <option value="gamepad_button:2">Gamepad North / Y</option><option value="gamepad_button:3">Gamepad West / X</option>
+              </select>
+            </label>
+            <label><span>Hedef</span>
+              <select id="gaming-binding-target"><option value="tap">Tap</option><option value="android_key">Android Key</option></select>
+            </label>
+            <label><span>X / KeyCode</span><input id="gaming-binding-x" type="number" value="8000" min="0" max="10000"></label>
+            <label><span>Y / Pointer ID</span><input id="gaming-binding-y" type="number" value="7000" min="0" max="10000"></label>
+            <button id="gaming-binding-add" class="ghost-button" type="button">Binding Ekle</button>
+          </div>
+          <div id="gaming-binding-list" class="snapshot-list"></div>
+          <div id="gaming-binding-empty" class="compact-empty">Binding yok.</div>
+        </section>
+
+        <div class="modal-actions">
+          <button id="gaming-input-reset" class="ghost-button" type="button">Runtime State Reset</button>
+          <button class="primary-button" type="submit">Profili Kaydet</button>
+        </div>
+      </form>
+      <p class="form-note">Persistent multi-touch yalniz Turkuaz Android Guest Agent handshake READY oldugunda aktif olur. Agent yoksa ADB fallback tap/key eylemleriyle sinirlidir.</p>
+    </div>
+  </div>
+
+
+  <script src="./views/download_progress_view.js"></script>
+  <script src="./views/vm_workspace_view.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# 📄 Dosya Yolu: /turkuazvm/rust-toolchain.toml
+# 📌 Amac: TurkuazVM release derlemelerinde kullanilacak Rust toolchain surumunu sabitler
+# 📌 Modul - TOML
+# Version: 0.37.0
+# Aciklama: Workspace ve compiler gate ile ayni Rust 1.98.0 toolchainini zorunlu tutar
+# Bagimli Oldugu Katman: Tool
+
+[toolchain]
+channel = "1.98.0"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

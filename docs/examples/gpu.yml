@@ -1,0 +1,11 @@
+# 📄 Dosya Yolu: /turkuazvm/docs/examples/gpu.yml
+# 📌 Amac: TurkuazVM Gaming GPU config fragment ornegini saglar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Auto backend, host memory ve experimental GfxStream opt-in ayarlarini gosterir
+# Bagimli Oldugu Katman: Service | Tool
+
+gpu:
+  mode: auto
+  hostmem_mib: 1024
+  allow_experimental_android_gfxstream: false

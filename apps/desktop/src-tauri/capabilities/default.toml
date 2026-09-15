@@ -1,0 +1,11 @@
+# 📄 Dosya Yolu: /turkuazvm/apps/desktop/src-tauri/capabilities/default.toml
+# 📌 Amac: Ana TurkuazVM Desktop penceresinin Tauri core capability sinirini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Main window icin yalniz temel core izinlerini acar
+# Bagimli Oldugu Katman: View | Tool
+
+identifier = "default"
+description = "TurkuazVM main desktop capability"
+windows = ["main"]
+permissions = ["core:default"]

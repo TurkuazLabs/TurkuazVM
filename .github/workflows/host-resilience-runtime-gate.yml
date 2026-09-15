@@ -1,0 +1,49 @@
+# 📄 Dosya Yolu: /turkuazvm/.github/workflows/host-resilience-runtime-gate.yml
+# 📌 Amac: K host resilience runtime wiring kodunu Linux ve Windows CI matrixinde fail-closed dogrular
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Layer gate, runtime regression ve Python compile kontrollerini iki host ailesinde required check olarak calistirir
+# Bagimli Oldugu Katman: Tool | View
+
+name: TurkuazVM Host Resilience Runtime Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release/**
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install runtime gate dependency
+        run: python -m pip install --disable-pip-version-check -r config/requirements-ci.txt
+      - name: Validate K layered runtime gate
+        run: python scripts/host_resilience_runtime_gate.py
+      - name: Run K runtime regression groups
+        run: python scripts/tests/test_host_resilience_runtime.py
+      - name: Compile Python runtime modules
+        run: python -m compileall -q controllers services repositories tools views scripts
+      - name: Upload K runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-resilience-runtime-evidence-${{ runner.os }}
+          path: artifacts/host-resilience-runtime-summary.yml
+          if-no-files-found: error
+          retention-days: 14

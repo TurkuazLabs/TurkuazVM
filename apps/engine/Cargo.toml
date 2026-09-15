@@ -1,0 +1,37 @@
+# 📄 Dosya Yolu: /turkuazvm/apps/engine/Cargo.toml
+# 📌 Amac: TurkuazVM Engine binary crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Core service'leri local Engine API, platform network, GPU, QEMU ve repository adapterleri ile compose eder
+# Bagimli Oldugu Katman: Controller | Service | Repo | Tool | View
+
+[package]
+name = "turkuazvm-engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+sha2.workspace = true
+turkuazvm-artifact-cache = { path = "../../crates/artifact-cache" }
+turkuazvm-android = { path = "../../crates/android" }
+turkuazvm-android-image = { path = "../../crates/android-image" }
+turkuazvm-core = { path = "../../crates/core" }
+turkuazvm-engine-api = { path = "../../crates/engine-api" }
+turkuazvm-guest = { path = "../../crates/guest" }
+turkuazvm-gpu = { path = "../../crates/gpu" }
+turkuazvm-gaming-input = { path = "../../crates/gaming-input" }
+turkuazvm-game-catalog = { path = "../../crates/game-catalog" }
+turkuazvm-guest-catalog = { path = "../../crates/guest-catalog" }
+turkuazvm-platform = { path = "../../crates/platform" }
+turkuazvm-qemu = { path = "../../crates/qemu" }
+turkuazvm-repositories = { path = "../../crates/repositories" }
+turkuazvm-storage = { path = "../../crates/storage" }
+turkuazvm-transport = { path = "../../crates/transport" }
+
+[lints]
+workspace = true

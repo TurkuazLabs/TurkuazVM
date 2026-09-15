@@ -1,0 +1,31 @@
+# 📄 Dosya Yolu: /turkuazvm/docs/examples/machine-bridge-linux.yml
+# 📌 Amac: Linux host bridge kullanan machine.yml schema version 5 ornegini saglar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Linux br0 hedefini virtio network adapterine baglayan ornek manifesttir
+# Bagimli Oldugu Katman: Repo
+
+schema_version: 6
+vm:
+  id: linux-bridge-demo
+  name: Linux Bridge Demo
+  vcpu_count: 4
+  memory_mib: 4096
+  acceleration: kvm
+  state: stopped
+  last_failure: null
+storage:
+  disks: []
+network:
+  adapters:
+    - id: lan
+      mode: bridge
+      device_model: virtio_net_pci
+      mac_address: null
+      port_forwards: []
+      bridge:
+        bridge_name: br0
+        tap_name: null
+guest: null
+snapshots:
+  records: []

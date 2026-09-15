@@ -1,0 +1,20 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/engine-api/Cargo.toml
+# 📌 Amac: Desktop, Engine ve gelecekteki remote clientlar icin ortak API contract crate manifestini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Versioned JSON line protocol DTO ve request/response modellerini ortaklastirir
+# Bagimli Oldugu Katman: Controller | Service | Tool | View
+
+[package]
+name = "turkuazvm-engine-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true

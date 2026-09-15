@@ -1,0 +1,41 @@
+# 📄 Dosya Yolu: /turkuazvm/.github/workflows/host-resilience-policy-gate.yml
+# 📌 Amac: Host resilience policy driftini pull request ve release akisinda fail-closed olarak engeller
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: J policy validator ve negatif regression testlerini CI required check olarak calistirir
+# Bagimli Oldugu Katman: Tool | View
+
+name: TurkuazVM Host Resilience Policy Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release/**
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install policy dependency
+        run: python -m pip install --disable-pip-version-check -r config/requirements-host-resilience.txt
+      - name: Validate host resilience policy
+        run: python scripts/host_resilience_policy.py
+      - name: Run fail-closed regression tests
+        run: python scripts/tests/test_host_resilience_policy.py
+      - name: Upload policy evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-resilience-policy-evidence
+          path: artifacts/host-resilience-policy-summary.yml
+          if-no-files-found: error
+          retention-days: 14

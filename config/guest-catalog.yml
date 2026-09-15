@@ -1,0 +1,770 @@
+# 📄 Dosya Yolu: /turkuazvm/config/guest-catalog.yml
+# 📌 Amac: VM olusturma ve kurulum medyasi merkezinde OS, Android 10-17/12L surumleri ve Linux Desktop/Server/NetInstall resmi medya profillerini tanimlar
+# 📌 Modul - YAML
+# Version: 0.39.4
+# Aciklama: Linux Desktop/Server medyalarini tur bazli politika ile secerek Fedora netinst, Debian netinst, Rocky boot ve Ubuntu live-server varsayilanlarini merkezi olarak tanimlar
+# Bagimli Oldugu Katman: Repo | Service | View
+
+
+schema_version: 4
+linux_media_policies:
+- product_id: ubuntu
+  profile_id: desktop
+  preferred_media_kinds:
+  - desktop_live
+- product_id: ubuntu
+  profile_id: server
+  preferred_media_kinds:
+  - server_standard
+- product_id: debian
+  profile_id: server
+  preferred_media_kinds:
+  - network_install
+  - dvd
+- product_id: debian
+  profile_id: desktop-gnome
+  preferred_media_kinds:
+  - desktop_live
+- product_id: fedora
+  profile_id: workstation
+  preferred_media_kinds:
+  - desktop_live
+- product_id: fedora
+  profile_id: server
+  preferred_media_kinds:
+  - network_install
+  - dvd
+- product_id: linux-mint
+  profile_id: cinnamon
+  preferred_media_kinds:
+  - desktop_live
+- product_id: rocky-linux
+  profile_id: server
+  preferred_media_kinds:
+  - boot
+  - minimal
+  - dvd
+templates:
+- id: windows-11-25h2-pro
+  family: windows
+  family_label: Windows
+  product_id: windows-11
+  product_label: Windows 11
+  release_id: 25h2
+  release_label: 25H2
+  profile_id: pro
+  profile_label: Pro
+  guest_profile: windows
+  architecture: x86_64
+  source_kind: iso
+  source_label: ISO dosyasi
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 80
+  installer_media:
+    mode: official_page
+    provider: Microsoft
+    label: Windows 11 25H2 x64 ISO
+    url: https://www.microsoft.com/software-download/windows11
+    note: Microsoft ISO baglantisini dil ve surum seciminden sonra gecici olarak uretir. Resmi sayfayi acip ISO dosyasini indirin.
+    id: windows-11-25h2-pro-x64-official
+    architecture: x86_64
+    recommended: true
+  description: Windows 11 masaustu icin dengeli varsayilan profil.
+- id: windows-11-25h2-enterprise
+  family: windows
+  family_label: Windows
+  product_id: windows-11
+  product_label: Windows 11
+  release_id: 25h2
+  release_label: 25H2
+  profile_id: enterprise
+  profile_label: Enterprise
+  guest_profile: windows
+  architecture: x86_64
+  source_kind: iso
+  source_label: ISO dosyasi
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 96
+  installer_media:
+    mode: official_page
+    provider: Microsoft
+    label: Windows 11 25H2 x64 ISO
+    url: https://www.microsoft.com/software-download/windows11
+    note: Enterprise kurulumu lisans ve uygun medya gerektirir. Resmi Microsoft ISO sayfasini kullanin.
+    id: windows-11-25h2-enterprise-x64-official
+    architecture: x86_64
+    recommended: true
+  description: Windows 11 Enterprise test ve yonetim senaryolari.
+- id: windows-11-24h2-pro
+  family: windows
+  family_label: Windows
+  product_id: windows-11
+  product_label: Windows 11
+  release_id: 24h2
+  release_label: 24H2
+  profile_id: pro
+  profile_label: Pro
+  guest_profile: windows
+  architecture: x86_64
+  source_kind: iso
+  source_label: ISO dosyasi
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 80
+  installer_media:
+    mode: official_page
+    provider: Microsoft
+    label: Windows 11 x64 ISO
+    url: https://www.microsoft.com/software-download/windows11
+    note: Microsoft ana indirme sayfasi guncel Windows 11 medyasini sunar. 24H2 gerekiyorsa uygun arsiv veya lisans kanalinizdan ISO secin.
+    id: windows-11-24h2-pro-x64-official
+    architecture: x86_64
+    recommended: true
+  description: Windows 11 24H2 uyumluluk ve regression test profili.
+- id: windows-server-2025-standard
+  family: windows
+  family_label: Windows
+  product_id: windows-server
+  product_label: Windows Server
+  release_id: '2025'
+  release_label: '2025'
+  profile_id: standard
+  profile_label: Standard
+  guest_profile: windows
+  architecture: x86_64
+  source_kind: iso
+  source_label: ISO dosyasi
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 100
+  installer_media:
+    mode: official_page
+    provider: Microsoft
+    label: Windows Server 2025 Evaluation ISO
+    url: https://www.microsoft.com/en-us/evalcenter/download-windows-server-2025
+    note: Evaluation Center kayit ve dil secimi sonrasinda resmi 64-bit ISO baglantisini sunar.
+    id: windows-server-2025-x64-official
+    architecture: x86_64
+    recommended: true
+  description: Genel amacli Windows Server 2025 profili.
+- id: windows-server-2022-standard
+  family: windows
+  family_label: Windows
+  product_id: windows-server
+  product_label: Windows Server
+  release_id: '2022'
+  release_label: '2022'
+  profile_id: standard
+  profile_label: Standard
+  guest_profile: windows
+  architecture: x86_64
+  source_kind: iso
+  source_label: ISO dosyasi
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 80
+  installer_media:
+    mode: official_page
+    provider: Microsoft
+    label: Windows Server 2022 Evaluation ISO
+    url: https://www.microsoft.com/en-us/evalcenter/download-windows-server-2022
+    note: Evaluation Center kayit ve dil secimi sonrasinda resmi 64-bit ISO baglantisini sunar.
+    id: windows-server-2022-x64-official
+    architecture: x86_64
+    recommended: true
+  description: Windows Server 2022 uyumluluk profili.
+- id: ubuntu-26.04-lts-desktop
+  family: linux
+  family_label: Linux
+  product_id: ubuntu
+  product_label: Ubuntu
+  release_id: 26.04-lts
+  release_label: 26.04 LTS
+  profile_id: desktop
+  profile_label: Desktop
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: ISO dosyasi
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 48
+  installer_media:
+    mode: direct
+    provider: Canonical
+    label: Ubuntu 26.04.1 LTS Desktop amd64
+    url: https://releases.ubuntu.com/26.04.1/ubuntu-26.04.1-desktop-amd64.iso
+    filename: ubuntu-26.04.1-desktop-amd64.iso
+    checksum_url: https://releases.ubuntu.com/26.04.1/SHA256SUMS
+    note: Canonical resmi LTS point-release ISO. Indirme sonrasinda SHA-256 otomatik dogrulanir.
+    id: ubuntu-26.04.1-desktop-amd64
+    architecture: x86_64
+    recommended: true
+    media_kind: desktop_live
+  description: Ubuntu 26.04 LTS masaustu gelistirme profili.
+  installer_media_options:
+  - id: ubuntu-24.04.4-desktop-amd64
+    mode: direct
+    provider: Canonical
+    label: Ubuntu 24.04.4 LTS Desktop amd64
+    architecture: x86_64
+    recommended: false
+    url: https://releases.ubuntu.com/24.04.4/ubuntu-24.04.4-desktop-amd64.iso
+    filename: ubuntu-24.04.4-desktop-amd64.iso
+    checksum_url: https://releases.ubuntu.com/24.04.4/SHA256SUMS
+    note: Onceki LTS masaustu medyasi; uyumluluk veya daha eski LTS gereksinimi icin.
+    media_kind: desktop_live
+- id: ubuntu-26.04-lts-server
+  family: linux
+  family_label: Linux
+  product_id: ubuntu
+  product_label: Ubuntu
+  release_id: 26.04-lts
+  release_label: 26.04 LTS
+  profile_id: server
+  profile_label: Server
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: Server Install ISO
+  firmware: uefi
+  recommended:
+    vcpu_count: 2
+    memory_mib: 4096
+    disk_size_gib: 32
+  installer_media:
+    mode: direct
+    provider: Canonical
+    label: Ubuntu 26.04.1 LTS Server amd64
+    url: https://releases.ubuntu.com/26.04.1/ubuntu-26.04.1-live-server-amd64.iso
+    filename: ubuntu-26.04.1-live-server-amd64.iso
+    checksum_url: https://releases.ubuntu.com/26.04.1/SHA256SUMS
+    note: Canonical resmi Live Server ISO. Ubuntu Server icin standart baglanabilir ISO budur; netboot tarball ISO olmadigi icin CD/DVD medyasi
+      olarak kullanilmaz.
+    id: ubuntu-26.04.1-server-amd64
+    architecture: x86_64
+    recommended: true
+    media_kind: server_standard
+  description: Ubuntu 26.04 LTS hafif sunucu profili.
+  installer_media_options:
+  - id: ubuntu-24.04.4-server-amd64
+    mode: direct
+    provider: Canonical
+    label: Ubuntu 24.04.4 LTS Server amd64
+    architecture: x86_64
+    recommended: false
+    url: https://releases.ubuntu.com/24.04.4/ubuntu-24.04.4-live-server-amd64.iso
+    filename: ubuntu-24.04.4-live-server-amd64.iso
+    checksum_url: https://releases.ubuntu.com/24.04.4/SHA256SUMS
+    note: Onceki Ubuntu LTS Live Server ISO. Ubuntu netboot arsivi ISO degildir; VM CD/DVD kurulumu icin Live Server ISO kullanilir.
+    media_kind: server_standard
+- id: ubuntu-24.04-lts-desktop
+  family: linux
+  family_label: Linux
+  product_id: ubuntu
+  product_label: Ubuntu
+  release_id: 24.04-lts
+  release_label: 24.04 LTS
+  profile_id: desktop
+  profile_label: Desktop
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: ISO dosyasi
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 48
+  installer_media:
+    mode: direct
+    provider: Canonical
+    label: Ubuntu 24.04.4 LTS Desktop amd64
+    url: https://releases.ubuntu.com/24.04.4/ubuntu-24.04.4-desktop-amd64.iso
+    filename: ubuntu-24.04.4-desktop-amd64.iso
+    checksum_url: https://releases.ubuntu.com/24.04.4/SHA256SUMS
+    note: Canonical resmi 24.04 LTS point-release ISO. Indirme sonrasinda SHA-256 otomatik dogrulanir.
+    id: ubuntu-24.04.4-desktop-amd64
+    architecture: x86_64
+    recommended: true
+    media_kind: desktop_live
+  description: Ubuntu 24.04 LTS uzun sureli destek masaustu profili.
+  installer_media_options:
+  - id: ubuntu-26.04.1-desktop-amd64
+    mode: direct
+    provider: Canonical
+    label: Ubuntu 26.04.1 LTS Desktop amd64
+    architecture: x86_64
+    recommended: false
+    url: https://releases.ubuntu.com/26.04.1/ubuntu-26.04.1-desktop-amd64.iso
+    filename: ubuntu-26.04.1-desktop-amd64.iso
+    checksum_url: https://releases.ubuntu.com/26.04.1/SHA256SUMS
+    note: Daha yeni LTS masaustu medyasi. VM template kaydi degismez; yalniz kurulum medyasi degisir.
+    media_kind: desktop_live
+- id: debian-13-server
+  family: linux
+  family_label: Linux
+  product_id: debian
+  product_label: Debian
+  release_id: '13'
+  release_label: 13 (Trixie)
+  profile_id: server
+  profile_label: Server
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: NetInstall ISO
+  firmware: uefi
+  recommended:
+    vcpu_count: 2
+    memory_mib: 4096
+    disk_size_gib: 32
+  installer_media:
+    id: debian-13.6-netinst-amd64
+    mode: direct
+    provider: Debian
+    label: Debian 13.6 amd64 netinst
+    architecture: x86_64
+    recommended: true
+    url: https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-13.6.0-amd64-netinst.iso
+    filename: debian-13.6.0-amd64-netinst.iso
+    checksum_url: https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA256SUMS
+    note: Debian stable 13.6 resmi netinst ISO. Sunucu VM icin varsayilandir; installer ve temel sistemi medyadan acip ek paketleri agdan indirir.
+    media_kind: network_install
+  description: "Debian 13 kararl\u0131 sunucu profili."
+  installer_media_options:
+  - id: debian-13.6-dvd1-amd64
+    mode: direct
+    provider: Debian
+    label: Debian 13.6 amd64 DVD-1 (offline)
+    architecture: x86_64
+    recommended: false
+    url: https://cdimage.debian.org/debian-cd/current/amd64/iso-dvd/debian-13.6.0-amd64-DVD-1.iso
+    filename: debian-13.6.0-amd64-DVD-1.iso
+    checksum_url: https://cdimage.debian.org/debian-cd/current/amd64/iso-dvd/SHA256SUMS
+    note: Debian 13.6 DVD-1. Daha buyuk indirme; internet olmadan daha fazla paketle kurulum icin uygundur.
+    media_kind: dvd
+  - id: debian-12.15-netinst-amd64
+    mode: direct
+    provider: Debian
+    label: Debian 12.15 amd64 netinst (oldstable)
+    architecture: x86_64
+    recommended: false
+    url: https://cdimage.debian.org/cdimage/archive/12.15.0/amd64/iso-cd/debian-12.15.0-amd64-netinst.iso
+    filename: debian-12.15.0-amd64-netinst.iso
+    checksum_url: https://cdimage.debian.org/cdimage/archive/12.15.0/amd64/iso-cd/SHA256SUMS
+    note: Debian 12.15 oldstable uyumluluk ve regression senaryolari icin arsiv medyasi.
+    media_kind: network_install
+- id: debian-13-desktop-gnome
+  family: linux
+  family_label: Linux
+  product_id: debian
+  product_label: Debian
+  release_id: '13'
+  release_label: 13 (Trixie)
+  profile_id: desktop-gnome
+  profile_label: Desktop GNOME
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: Live ISO
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 6144
+    disk_size_gib: 48
+  installer_media:
+    id: debian-live-13.6-gnome-amd64
+    mode: direct
+    provider: Debian
+    label: Debian 13.6 Live GNOME amd64
+    architecture: x86_64
+    recommended: true
+    url: https://cdimage.debian.org/debian-cd/current-live/amd64/iso-hybrid/debian-live-13.6.0-amd64-gnome.iso
+    filename: debian-live-13.6.0-amd64-gnome.iso
+    checksum_url: https://cdimage.debian.org/debian-cd/current-live/amd64/iso-hybrid/SHA256SUMS
+    note: Debian stable Live GNOME masaustu ISO. Calisan sistem olarak acilir ve Calamares ile kurulabilir.
+    media_kind: desktop_live
+  description: Debian 13 GNOME masaustu ve uygulama test profili.
+- id: fedora-44-workstation
+  family: linux
+  family_label: Linux
+  product_id: fedora
+  product_label: Fedora
+  release_id: '44'
+  release_label: '44'
+  profile_id: workstation
+  profile_label: Workstation Desktop
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: Live ISO
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 48
+  installer_media:
+    id: fedora-workstation-44-1.7-x86_64
+    mode: direct
+    provider: Fedora Project
+    label: Fedora Workstation 44 Live x86_64
+    architecture: x86_64
+    recommended: true
+    url: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-Live-44-1.7.x86_64.iso
+    filename: Fedora-Workstation-Live-44-1.7.x86_64.iso
+    checksum_url: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Workstation/x86_64/iso/Fedora-Workstation-44-1.7-x86_64-CHECKSUM
+    note: Fedora Project resmi Workstation Live ISO. Fedora mirror yonlendirmesi kullanilir ve checksum ile dogrulanir.
+    media_kind: desktop_live
+  description: Fedora 44 GNOME Workstation masaustu profili.
+- id: fedora-44-server
+  family: linux
+  family_label: Linux
+  product_id: fedora
+  product_label: Fedora
+  release_id: '44'
+  release_label: '44'
+  profile_id: server
+  profile_label: Server
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: Network Install ISO
+  firmware: uefi
+  recommended:
+    vcpu_count: 2
+    memory_mib: 4096
+    disk_size_gib: 32
+  installer_media:
+    id: fedora-server-44-netinst-x86_64
+    mode: direct
+    provider: Fedora Project
+    label: Fedora Server 44 Network Install x86_64
+    architecture: x86_64
+    recommended: true
+    url: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/iso/Fedora-Server-netinst-x86_64-44-1.7.iso
+    filename: Fedora-Server-netinst-x86_64-44-1.7.iso
+    checksum_url: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/iso/Fedora-Server-44-1.7-x86_64-CHECKSUM
+    note: Fedora Project resmi Server Network Install ISO. Sunucu VM icin varsayilan medyadir; paketler kurulum sirasinda resmi Fedora depolarindan
+      indirilir.
+    media_kind: network_install
+  installer_media_options:
+  - id: fedora-server-44-dvd-x86_64
+    mode: direct
+    provider: Fedora Project
+    label: Fedora Server 44 DVD x86_64
+    architecture: x86_64
+    recommended: false
+    url: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/iso/Fedora-Server-dvd-x86_64-44-1.7.iso
+    filename: Fedora-Server-dvd-x86_64-44-1.7.iso
+    checksum_url: https://download.fedoraproject.org/pub/fedora/linux/releases/44/Server/x86_64/iso/Fedora-Server-44-1.7-x86_64-CHECKSUM
+    note: Fedora Project resmi Server DVD ISO. Daha buyuk offline kurulum medyasidir; yalniz agsiz veya yerel paket gerektiren kurulumlarda secin.
+    media_kind: dvd
+  description: Fedora 44 sunucu ve servis test profili.
+- id: linux-mint-22.3-cinnamon
+  family: linux
+  family_label: Linux
+  product_id: linux-mint
+  product_label: Linux Mint
+  release_id: '22.3'
+  release_label: 22.3 Zena
+  profile_id: cinnamon
+  profile_label: Cinnamon Desktop
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: Official Mirror Page
+  firmware: uefi
+  recommended:
+    vcpu_count: 4
+    memory_mib: 4096
+    disk_size_gib: 40
+  installer_media:
+    id: linux-mint-22.3-cinnamon-official
+    mode: official_page
+    provider: Linux Mint
+    label: Linux Mint 22.3 Cinnamon 64-bit
+    architecture: x86_64
+    recommended: true
+    url: https://linuxmint.com/edition.php?id=326
+    note: Linux Mint resmi edition sayfasi mirror secimi ve SHA-256 dogrulama baglantilarini sunar. Mint icin ayri Server ISO yoktur.
+    media_kind: desktop_live
+  description: Linux Mint 22.3 Cinnamon masaustu profili.
+- id: rocky-10-server
+  family: linux
+  family_label: Linux
+  product_id: rocky-linux
+  product_label: Rocky Linux
+  release_id: '10'
+  release_label: '10.2'
+  profile_id: server
+  profile_label: Server
+  guest_profile: linux
+  architecture: x86_64
+  source_kind: iso
+  source_label: Boot / Network Install ISO
+  firmware: uefi
+  recommended:
+    vcpu_count: 2
+    memory_mib: 4096
+    disk_size_gib: 32
+  installer_media:
+    id: rocky-10-latest-boot-x86_64
+    mode: direct
+    media_kind: boot
+    provider: Rocky Linux
+    label: Rocky Linux 10 latest Boot / Network Install x86_64
+    architecture: x86_64
+    recommended: true
+    url: https://download.rockylinux.org/pub/rocky/10/isos/x86_64/Rocky-10-latest-x86_64-boot.iso
+    filename: Rocky-10-latest-x86_64-boot.iso
+    checksum_url: https://download.rockylinux.org/pub/rocky/10/isos/x86_64/Rocky-10-latest-x86_64-boot.iso.CHECKSUM
+    note: Rocky Linux resmi Boot ISO. Sunucu VM icin en kucuk standart ISO yoludur; BaseOS/AppStream paketlerini kurulum sirasinda resmi Rocky
+      depolarindan alir.
+  installer_media_options:
+  - id: rocky-10-latest-minimal-x86_64
+    mode: direct
+    provider: Rocky Linux
+    label: Rocky Linux 10 latest Minimal x86_64
+    architecture: x86_64
+    recommended: false
+    url: https://download.rockylinux.org/pub/rocky/10/isos/x86_64/Rocky-10-latest-x86_64-minimal.iso
+    filename: Rocky-10-latest-x86_64-minimal.iso
+    checksum_url: https://download.rockylinux.org/pub/rocky/10/isos/x86_64/Rocky-10-latest-x86_64-minimal.iso.CHECKSUM
+    note: Rocky Linux resmi Minimal ISO. Boot ISO ile ag kurulumunun uygun olmadigi durumlarda daha fazla temel paketi yerel medyada tasir.
+    media_kind: minimal
+  - id: rocky-10-latest-dvd-x86_64
+    mode: direct
+    provider: Rocky Linux
+    label: Rocky Linux 10 latest DVD x86_64
+    architecture: x86_64
+    recommended: false
+    url: https://download.rockylinux.org/pub/rocky/10/isos/x86_64/Rocky-10-latest-x86_64-dvd.iso
+    filename: Rocky-10-latest-x86_64-dvd.iso
+    checksum_url: https://download.rockylinux.org/pub/rocky/10/isos/x86_64/Rocky-10-latest-x86_64-dvd.iso.CHECKSUM
+    note: Offline kurulum icin daha buyuk Rocky Linux DVD medyasi.
+    media_kind: dvd
+  description: Rocky Linux 10 sunucu ve RHEL uyumluluk profili; varsayilan olarak resmi Boot ISO ile ag kurulumu kullanir.
+- id: android-17-gaming-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '17'
+  release_label: Android 17
+  profile_id: gaming-phone
+  profile_label: Gaming Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 64
+  description: Oyun odakli Android 17 x86_64 profili.
+- id: android-17-tablet
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '17'
+  release_label: Android 17
+  profile_id: tablet
+  profile_label: Tablet
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 6144
+    disk_size_gib: 48
+  description: Android 17 tablet form faktor profili.
+- id: android-16-gaming-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '16'
+  release_label: Android 16
+  profile_id: gaming-phone
+  profile_label: Gaming Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 8192
+    disk_size_gib: 64
+  description: Android 16 oyun ve uyumluluk profili.
+- id: android-15-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '15'
+  release_label: Android 15
+  profile_id: phone
+  profile_label: Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 6144
+    disk_size_gib: 48
+  description: Android 15 genel uygulama ve oyun uyumluluk profili.
+- id: android-14-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '14'
+  release_label: Android 14
+  profile_id: phone
+  profile_label: Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 6144
+    disk_size_gib: 48
+  description: Android 14 uygulama ve oyun uyumluluk profili.
+- id: android-13-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '13'
+  release_label: Android 13
+  profile_id: phone
+  profile_label: Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 6144
+    disk_size_gib: 48
+  description: Android 13 uygulama ve oyun uyumluluk profili.
+- id: android-12l-tablet
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: 12L
+  release_label: Android 12L
+  profile_id: tablet
+  profile_label: Tablet
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 6144
+    disk_size_gib: 48
+  description: Android 12L buyuk ekran ve tablet uyumluluk profili.
+- id: android-12-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '12'
+  release_label: Android 12
+  profile_id: phone
+  profile_label: Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 4096
+    disk_size_gib: 40
+  description: Android 12 uygulama uyumluluk profili.
+- id: android-11-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '11'
+  release_label: Android 11
+  profile_id: phone
+  profile_label: Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 4096
+    disk_size_gib: 40
+  description: Android 11 eski uygulama ve oyun uyumluluk profili.
+- id: android-10-phone
+  family: android
+  family_label: Android
+  product_id: android
+  product_label: Android
+  release_id: '10'
+  release_label: Android 10
+  profile_id: phone
+  profile_label: Phone
+  guest_profile: android
+  architecture: x86_64
+  source_kind: android_image
+  source_label: Turkuaz Android Image
+  firmware: qemu_bootloader
+  recommended:
+    vcpu_count: 4
+    memory_mib: 4096
+    disk_size_gib: 32
+  description: Android 10 legacy uygulama ve oyun uyumluluk profili.
+- id: custom-x86_64-manual
+  family: other
+  family_label: Diger
+  product_id: custom
+  product_label: Ozel / Diger
+  release_id: manual
+  release_label: Manuel
+  profile_id: generic
+  profile_label: Generic
+  guest_profile: generic
+  architecture: x86_64
+  source_kind: manual
+  source_label: ISO / IMG sec
+  firmware: uefi
+  recommended:
+    vcpu_count: 2
+    memory_mib: 4096
+    disk_size_gib: 32
+  description: Kendi ISO veya IMG medyanizi kullanacaginiz genel profil.

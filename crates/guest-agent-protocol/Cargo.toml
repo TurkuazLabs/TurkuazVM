@@ -1,0 +1,23 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/guest-agent-protocol/Cargo.toml
+# 📌 Amac: Android Guest Agent wire protocol crate bagimliliklarini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Host ve Android Guest Agent arasindaki TVGB v2 authenticated binary transport contractini tanimlar
+# Bagimli Oldugu Katman: Tool
+
+[package]
+name = "turkuazvm-guest-agent-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hmac.workspace = true
+getrandom.workspace = true
+
+[lints]
+workspace = true

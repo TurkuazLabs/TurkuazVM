@@ -1,0 +1,58 @@
+# 📄 Dosya Yolu: /turkuazvm/config/game-catalog.yml
+# 📌 Amac: TurkuazVM oyun katalogu, compatibility gereksinimleri ve input/runtime presetlerini saklar
+# 📌 Modul - YAML
+# Version: 0.28.0
+# Aciklama: Oyun package isimlerini ve deneysel profil ayarlarini uygulama kodundan ayirir
+# Bagimli Oldugu Katman: Repo | Service | View
+
+schema_version: 1
+games:
+  - id: pubg-mobile
+    name: PUBG MOBILE
+    packages:
+      - com.tencent.ig
+      - com.pubg.krmobile
+      - com.vng.pubgmobile
+      - com.rekoo.pubgm
+    maturity: experimental
+    emulator_disclosure_required: true
+    requirements:
+      minimum_sdk: 26
+      accepted_abis: []
+      persistent_multi_touch: true
+      relative_mouse_look: true
+      preferred_gpu_backends:
+        - gfxstream
+        - virgl_venus
+    android:
+      width: 1920
+      height: 1080
+      density_dpi: 320
+      target_fps: 60
+    input:
+      joystick:
+        enabled: true
+        center: { x: 1750, y: 7900 }
+        radius: 1050
+        pointer_id: 0
+      mouse_look:
+        enabled: true
+        anchor: { x: 6900, y: 5000 }
+        sensitivity_x_milli: 1000
+        sensitivity_y_milli: 1000
+        pointer_id: 1
+      bindings:
+        - source: { type: key, key: space }
+          target: { type: tap, position: { x: 9150, y: 7050 } }
+        - source: { type: key, key: c }
+          target: { type: tap, position: { x: 8750, y: 7800 } }
+        - source: { type: key, key: z }
+          target: { type: tap, position: { x: 8150, y: 8200 } }
+        - source: { type: key, key: f }
+          target: { type: tap, position: { x: 6250, y: 6650 } }
+        - source: { type: mouse_button, button: left }
+          target: { type: hold_touch, pointer_id: 2, position: { x: 9250, y: 5250 } }
+        - source: { type: mouse_button, button: right }
+          target: { type: hold_touch, pointer_id: 3, position: { x: 8250, y: 5250 } }
+        - source: { type: gamepad_button, button: 0 }
+          target: { type: tap, position: { x: 9150, y: 7050 } }

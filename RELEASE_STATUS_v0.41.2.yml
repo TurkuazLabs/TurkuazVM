@@ -1,0 +1,46 @@
+# 📄 Dosya Yolu: /turkuazvm/RELEASE_STATUS_v0.41.2.yml
+# 📌 Amac: TurkuazVM v0.41.2 Baglanti Merkezi calisan-VM erisim patch release durumunu kaydeder
+# 📌 Modul - YAML
+# Version: 0.41.2
+# Aciklama: Running Turkuaz NAT VM icin SSH/RDP host yayinini onayli stop/publish/restart ile hazirlayan release metadata
+# Bagimli Oldugu Katman: View | Controller | Service | Repo | Tool | Config
+
+version: 0.41.2
+package: TurkuazVM-v0.41.2-FULL
+package_kind: CONNECTION_CENTER_RUNNING_VM_ACCESS_PATCH
+base: TurkuazVM-v0.41.1-FULL
+authoritative_manifest: MANIFEST_SHA256_v0.41.2.txt
+compatibility:
+  config_schema: 22
+  download_sources_schema: 5
+  engine_api_version: 24
+  vm_manifest_schema: 6
+  guest_catalog_schema: 4
+  android_image_manifest_schema: 4
+  guest_agent_protocol_version: 2
+  breaking_change: false
+focus:
+- Running Turkuaz NAT VM SSH/RDP prepare actions remain usable
+- Confirmed stop -> publish -> restart orchestration in Desktop Service
+- Publish failure recovery restart
+- Connection Center state refresh after prepare
+preserved:
+- v0.41.1 VM workspace usability patch
+- v0.41.0 VM control-first workspace
+- v0.40.14 Android Emulator port config wiring
+- v0.40.13 Windows Android SDK System Image provider
+- v0.40.12 PowerShell 5.1 process collection hotfix
+- v0.40.11 Windows runtime binary lock behavior
+- v0.40.10 Engine StartVm crash diagnostics
+validation:
+  v0412_connection_running_vm_access_contract: PASS
+  v0322_connection_center_contract: PASS
+  v0411_vm_workspace_usability_contract: PASS
+  v0414_android_emulator_port_config_wiring_contract: PASS
+  full_recovery_static_gate: PASS
+  javascript_syntax: PASS
+  python_compileall: PASS
+  cargo_workspace_v0412: UNVERIFIED_RUST_TOOLCHAIN_NOT_AVAILABLE_IN_BUILD_SANDBOX
+  windows_runtime_v0412: PENDING_USER_MACHINE
+release_gate: STATIC_PASS_WINDOWS_CARGO_RETEST_REQUIRED
+production_claim: false

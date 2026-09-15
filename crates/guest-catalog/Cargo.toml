@@ -1,0 +1,16 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/guest-catalog/Cargo.toml
+# 📌 Amac: Guest Catalog bounded context bagimliliklarini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: VM kurulum sihirbazinin OS, surum, profil ve onerilen kaynak metadata katmanini tanimlar
+# Bagimli Oldugu Katman: Service | Repo | View
+
+[package]
+name = "turkuazvm-guest-catalog"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true

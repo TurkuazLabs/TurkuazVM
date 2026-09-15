@@ -1,0 +1,16 @@
+# 📄 Dosya Yolu: /turkuazvm/crates/core/Cargo.toml
+# 📌 Amac: TurkuazVM domain, port ve application service cekirdegini tanimlar
+# 📌 Modul - TOML
+# Version: 0.28.0
+# Aciklama: Dis sistem bagimliligi olmayan ana is kurallari crate manifestidir
+# Bagimli Oldugu Katman: Service | Repo | Tool
+
+[package]
+name = "turkuazvm-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
