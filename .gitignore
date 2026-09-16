@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/.gitignore
 # 📌 Amac: TurkuazVM repository icinde uretilen ve lokal kalan dosyalari Git disinda tutar
 # 📌 Modul - GitIgnore
-# Version: 0.25.1
-# Aciklama: Rust build, validation artefact, Python cache, IDE ve runtime verilerini repository disinda tutar
+# Version: 0.41.4
+# Aciklama: Rust build, validation artefact, Windows distribution stage, Python cache, IDE ve runtime verilerini repository disinda tutar
 # Bagimli Oldugu Katman: Tool
 
 /target/
@@ -15,6 +15,7 @@
 /secrets/
 /packages/**/*.apk
 /artifacts/
+/apps/desktop/src-tauri/distribution/windows/stage/
 /.turkuazvm/
 **/__pycache__/
 *.pyc
