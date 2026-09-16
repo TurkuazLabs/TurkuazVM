@@ -2,7 +2,7 @@
 // 📌 Amac: TurkuazVM Windows NSIS dagitim ayarlarini ana Tauri config uzerine uygular
 // 📌 Modul - JSON5
 // Version: 0.41.5
-// Aciklama: Current-user veya system-wide secilebilir NSIS kurulumunu ve Turkce/Ingilizce dil secimini tanimlar; runtime writable state LOCALAPPDATA altinda tutulur
+// Aciklama: Current-user veya system-wide secilebilir NSIS kurulumunu, Turkce/Ingilizce dil secimini ve Turkce MultiUser hook'unu tanimlar; runtime writable state LOCALAPPDATA altinda tutulur
 // Bagimli Oldugu Katman: Tool | View | CI/CD
 {
   "bundle": {
@@ -13,6 +13,7 @@
         "installMode": "both",
         "languages": ["Turkish", "English"],
         "displayLanguageSelector": true,
+        "installerHooks": "windows/nsis-hooks.nsh",
         "installerIcon": "icons/icon.ico",
         "startMenuFolder": "TurkuazVM"
       }
