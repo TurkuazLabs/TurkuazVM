@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/test_windows_installer_smoke.ps1
-# 📌 Amac: Uretilen TurkuazVM NSIS paketini gercek Windows runner uzerinde sessiz kurup, AppData runtime'ini baslatip ve kaldirarak dogrular
+# 📌 Amac: Uretilen TurkuazVM NSIS paketini current-user ve per-machine modlarinda gercek Windows runner uzerinde kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
 # Version: 0.41.5
-# Aciklama: Setup/uninstall, HKCU kaydi, kurulu layout, LOCALAPPDATA runtime config materialization'i ve uninstall sonrasi kullanici verisi korunmasini fail-closed test eder
+# Aciklama: /CurrentUser ve /AllUsers kurulumlarini, registry scope'larini, LOCALAPPDATA runtime materialization'ini ve uninstall sonrasi kullanici verisi korunmasini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -25,6 +25,10 @@ $env:LOCALAPPDATA = $SmokeLocalAppData
 $RuntimeRoot = Join-Path $SmokeLocalAppData "TurkuazVM"
 $RuntimeConfigPath = Join-Path $RuntimeRoot "config/turkuazvm.yml"
 $RuntimeDownloadSourcesPath = Join-Path $RuntimeRoot "config/download-sources.yml"
+$RegistryPaths = @{
+    CurrentUser = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    AllUsers = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+}
 
 function Invoke-ProcessChecked {
     param(
@@ -34,7 +38,7 @@ function Invoke-ProcessChecked {
 
     $Process = Start-Process -FilePath $FilePath -ArgumentList $ArgumentList -Wait -PassThru
     if ($Process.ExitCode -ne 0) {
-        throw "PROCESS_FAILED: $FilePath exit=$($Process.ExitCode)"
+        throw "PROCESS_FAILED: $FilePath exit=$($Process.ExitCode) args=$($ArgumentList -join ' ')"
     }
 }
 
@@ -48,7 +52,13 @@ function Normalize-RegistryPath {
 }
 
 function Get-TurkuazUninstallEntry {
-    $Entries = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("CurrentUser", "AllUsers")]
+        [string]$Scope
+    )
+
+    $Entries = Get-ItemProperty -Path $RegistryPaths[$Scope] -ErrorAction SilentlyContinue
     return $Entries |
         Where-Object { $_.DisplayName -eq "TurkuazVM" } |
         Sort-Object { [string]$_.DisplayVersion } -Descending |
@@ -125,45 +135,21 @@ function Stop-TurkuazRuntimeProcesses {
         Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
-$Setup = Get-ChildItem -LiteralPath $ArtifactRoot -Filter "TurkuazVM-*-x64-Setup.exe" -File |
-    Sort-Object LastWriteTimeUtc -Descending |
-    Select-Object -First 1
-if ($null -eq $Setup) {
-    throw "SETUP_NOT_FOUND: $ArtifactRoot"
-}
-
-$ExistingEntry = Get-TurkuazUninstallEntry
-if ($null -ne $ExistingEntry) {
-    $ExistingUninstaller = Resolve-UninstallerPath -Entry $ExistingEntry
-    Invoke-ProcessChecked -FilePath $ExistingUninstaller -ArgumentList @("/S")
-}
-
-$InstalledExe = $null
-$Uninstaller = $null
-$DesktopProcess = $null
-try {
-    Write-Host "[1/6] NSIS sessiz kurulum baslatiliyor: $($Setup.Name)"
-    Invoke-ProcessChecked -FilePath $Setup.FullName -ArgumentList @("/S")
-
-    Write-Host "[2/6] HKCU uninstall kaydi ve kurulum konumu dogrulaniyor..."
-    $Entry = $null
-    $Deadline = (Get-Date).AddSeconds(30)
-    while ((Get-Date) -lt $Deadline) {
-        $Entry = Get-TurkuazUninstallEntry
-        if ($null -ne $Entry) {
-            break
+function Remove-ExistingTurkuazInstallations {
+    foreach ($Scope in @("CurrentUser", "AllUsers")) {
+        $Entry = Get-TurkuazUninstallEntry -Scope $Scope
+        if ($null -eq $Entry) {
+            continue
         }
-        Start-Sleep -Milliseconds 500
+        $Uninstaller = Resolve-UninstallerPath -Entry $Entry
+        if (Test-Path -LiteralPath $Uninstaller -PathType Leaf) {
+            Invoke-ProcessChecked -FilePath $Uninstaller -ArgumentList @("/S")
+        }
     }
-    if ($null -eq $Entry) {
-        throw "TURKUAZVM_UNINSTALL_ENTRY_NOT_FOUND"
-    }
+}
 
-    $Uninstaller = Resolve-UninstallerPath -Entry $Entry
-    $InstallRoot = Split-Path -Parent $Uninstaller
-    if (-not (Test-Path -LiteralPath $InstallRoot -PathType Container)) {
-        throw "INSTALL_ROOT_NOT_FOUND: $InstallRoot"
-    }
+function Assert-InstalledLayout {
+    param([Parameter(Mandatory = $true)][string]$InstallRoot)
 
     $RequiredPaths = @(
         (Join-Path $InstallRoot "turkuazvm-desktop.exe"),
@@ -176,9 +162,12 @@ try {
             throw "INSTALLED_FILE_MISSING: $RequiredPath"
         }
     }
-    $InstalledExe = $RequiredPaths[0]
+    return $RequiredPaths[0]
+}
 
-    Write-Host "[3/6] Kurulu read-only runtime template dogrulaniyor..."
+function Assert-PackagedRuntimeTemplate {
+    param([Parameter(Mandatory = $true)][string]$InstallRoot)
+
     $PackagedRuntimeConfig = Get-Content -LiteralPath (Join-Path $InstallRoot "config/turkuazvm.yml") -Raw
     if ($PackagedRuntimeConfig -notmatch 'display_executable_path:\s*bin/turkuazvm-display\.exe') {
         throw "INSTALLED_CONFIG_DISPLAY_PATH_INVALID"
@@ -189,71 +178,144 @@ try {
     if ($PackagedRuntimeConfig -match 'target/debug/turkuazvm-(engine|display)') {
         throw "INSTALLED_CONFIG_REFERENCES_DEBUG_BINARY"
     }
+}
 
-    Write-Host "[4/6] Desktop baslatiliyor ve LOCALAPPDATA runtime config materialization'i dogrulaniyor..."
-    $DesktopProcess = Start-Process -FilePath $InstalledExe -PassThru
-    Wait-FileCreated -Path $RuntimeConfigPath -Process $DesktopProcess
-    if (-not (Test-Path -LiteralPath $RuntimeDownloadSourcesPath -PathType Leaf)) {
-        throw "RUNTIME_DOWNLOAD_SOURCES_NOT_MATERIALIZED: $RuntimeDownloadSourcesPath"
-    }
-    foreach ($Directory in @((Join-Path $RuntimeRoot "data"), (Join-Path $RuntimeRoot "packages"))) {
-        if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
-            throw "RUNTIME_DIRECTORY_NOT_MATERIALIZED: $Directory"
-        }
-    }
+function Assert-MaterializedRuntime {
+    param(
+        [Parameter(Mandatory = $true)][string]$InstallRoot,
+        [Parameter(Mandatory = $true)][string]$InstalledExe
+    )
 
-    $RuntimeConfig = Get-Content -LiteralPath $RuntimeConfigPath -Raw
-    $InstallRootYaml = $InstallRoot.Replace('\', '/')
-    foreach ($Expected in @(
-        "display_executable_path: `"$InstallRootYaml/bin/turkuazvm-display.exe`"",
-        "executable_path: `"$InstallRootYaml/bin/turkuazvm-engine.exe`"",
-        "managed_helper_path: `"$InstallRootYaml/scripts/network_windows_managed.ps1`"",
-        "build_script: `"$InstallRootYaml/guest/android-image/scripts/build_turkuaz_android_image.sh`""
-    )) {
-        if (-not $RuntimeConfig.Contains($Expected)) {
-            throw "RUNTIME_CONFIG_ABSOLUTE_ASSET_PATH_MISSING: $Expected"
-        }
-    }
-    if ($RuntimeConfig -notmatch 'data_root:\s*\./data') {
-        throw "RUNTIME_CONFIG_DATA_ROOT_NOT_LOCALAPPDATA_RELATIVE"
-    }
-    if ($RuntimeConfig -match 'target/debug/turkuazvm-(engine|display)') {
-        throw "RUNTIME_CONFIG_REFERENCES_DEBUG_BINARY"
-    }
-    Start-Sleep -Seconds 2
-    if ($DesktopProcess.HasExited) {
-        throw "DESKTOP_EXITED_AFTER_RUNTIME_MATERIALIZATION: exit=$($DesktopProcess.ExitCode)"
-    }
-    Stop-TurkuazRuntimeProcesses -DesktopProcess $DesktopProcess
     $DesktopProcess = $null
+    try {
+        $DesktopProcess = Start-Process -FilePath $InstalledExe -PassThru
+        Wait-FileCreated -Path $RuntimeConfigPath -Process $DesktopProcess
+        if (-not (Test-Path -LiteralPath $RuntimeDownloadSourcesPath -PathType Leaf)) {
+            throw "RUNTIME_DOWNLOAD_SOURCES_NOT_MATERIALIZED: $RuntimeDownloadSourcesPath"
+        }
+        foreach ($Directory in @((Join-Path $RuntimeRoot "data"), (Join-Path $RuntimeRoot "packages"))) {
+            if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
+                throw "RUNTIME_DIRECTORY_NOT_MATERIALIZED: $Directory"
+            }
+        }
 
-    Write-Host "[5/6] NSIS sessiz kaldirma dogrulaniyor..."
+        $RuntimeConfig = Get-Content -LiteralPath $RuntimeConfigPath -Raw
+        $InstallRootYaml = $InstallRoot.Replace('\', '/')
+        foreach ($Expected in @(
+            "display_executable_path: `"$InstallRootYaml/bin/turkuazvm-display.exe`"",
+            "executable_path: `"$InstallRootYaml/bin/turkuazvm-engine.exe`"",
+            "managed_helper_path: `"$InstallRootYaml/scripts/network_windows_managed.ps1`"",
+            "build_script: `"$InstallRootYaml/guest/android-image/scripts/build_turkuaz_android_image.sh`""
+        )) {
+            if (-not $RuntimeConfig.Contains($Expected)) {
+                throw "RUNTIME_CONFIG_ABSOLUTE_ASSET_PATH_MISSING: $Expected"
+            }
+        }
+        if ($RuntimeConfig -notmatch 'data_root:\s*\./data') {
+            throw "RUNTIME_CONFIG_DATA_ROOT_NOT_LOCALAPPDATA_RELATIVE"
+        }
+        if ($RuntimeConfig -match 'target/debug/turkuazvm-(engine|display)') {
+            throw "RUNTIME_CONFIG_REFERENCES_DEBUG_BINARY"
+        }
+        Start-Sleep -Seconds 2
+        if ($DesktopProcess.HasExited) {
+            throw "DESKTOP_EXITED_AFTER_RUNTIME_MATERIALIZATION: exit=$($DesktopProcess.ExitCode)"
+        }
+    }
+    finally {
+        Stop-TurkuazRuntimeProcesses -DesktopProcess $DesktopProcess
+    }
+}
+
+function Invoke-InstallerModeSmoke {
+    param(
+        [Parameter(Mandatory = $true)][string]$SetupPath,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("/CurrentUser", "/AllUsers")]
+        [string]$ModeArgument,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("CurrentUser", "AllUsers")]
+        [string]$ExpectedScope,
+        [Parameter(Mandatory = $true)][string]$Label
+    )
+
+    if (Test-Path -LiteralPath $RuntimeRoot) {
+        Remove-Item -LiteralPath $RuntimeRoot -Recurse -Force
+    }
+
+    Write-Host "[$Label] NSIS sessiz kurulum: $ModeArgument"
+    Invoke-ProcessChecked -FilePath $SetupPath -ArgumentList @("/S", $ModeArgument, "/NS")
+
+    $Entry = $null
+    $Deadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $Deadline) {
+        $Entry = Get-TurkuazUninstallEntry -Scope $ExpectedScope
+        if ($null -ne $Entry) {
+            break
+        }
+        Start-Sleep -Milliseconds 500
+    }
+    if ($null -eq $Entry) {
+        throw "TURKUAZVM_UNINSTALL_ENTRY_NOT_FOUND: scope=$ExpectedScope"
+    }
+
+    $UnexpectedScope = if ($ExpectedScope -eq "CurrentUser") { "AllUsers" } else { "CurrentUser" }
+    if ($null -ne (Get-TurkuazUninstallEntry -Scope $UnexpectedScope)) {
+        throw "TURKUAZVM_UNEXPECTED_REGISTRY_SCOPE: expected=$ExpectedScope unexpected=$UnexpectedScope"
+    }
+
+    $Uninstaller = Resolve-UninstallerPath -Entry $Entry
+    $InstallRoot = Split-Path -Parent $Uninstaller
+    if (-not (Test-Path -LiteralPath $InstallRoot -PathType Container)) {
+        throw "INSTALL_ROOT_NOT_FOUND: $InstallRoot"
+    }
+    if ($ExpectedScope -eq "CurrentUser" -and -not $InstallRoot.StartsWith($SmokeLocalAppData, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "CURRENT_USER_INSTALL_OUTSIDE_LOCALAPPDATA: $InstallRoot"
+    }
+    if ($ExpectedScope -eq "AllUsers" -and $InstallRoot.StartsWith($SmokeLocalAppData, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "ALL_USERS_INSTALL_INSIDE_LOCALAPPDATA: $InstallRoot"
+    }
+
+    $InstalledExe = Assert-InstalledLayout -InstallRoot $InstallRoot
+    Assert-PackagedRuntimeTemplate -InstallRoot $InstallRoot
+    Assert-MaterializedRuntime -InstallRoot $InstallRoot -InstalledExe $InstalledExe
+
+    Write-Host "[$Label] NSIS sessiz kaldirma"
     Invoke-ProcessChecked -FilePath $Uninstaller -ArgumentList @("/S")
     Wait-PathRemoved -Path $InstalledExe
-    if ($null -ne (Get-TurkuazUninstallEntry)) {
-        throw "TURKUAZVM_UNINSTALL_ENTRY_STILL_PRESENT"
+    if ($null -ne (Get-TurkuazUninstallEntry -Scope $ExpectedScope)) {
+        throw "TURKUAZVM_UNINSTALL_ENTRY_STILL_PRESENT: scope=$ExpectedScope"
+    }
+    if (-not (Test-Path -LiteralPath $RuntimeConfigPath -PathType Leaf)) {
+        throw "UNINSTALL_REMOVED_USER_RUNTIME_CONFIG: mode=$ModeArgument"
     }
 
-    Write-Host "[6/6] Uninstall kullanici runtime verisini koruyor..."
-    if (-not (Test-Path -LiteralPath $RuntimeConfigPath -PathType Leaf)) {
-        throw "UNINSTALL_REMOVED_USER_RUNTIME_CONFIG"
-    }
+    Write-Output "WINDOWS_INSTALL_MODE_SMOKE_${ExpectedScope}=PASS"
+}
+
+$Setup = Get-ChildItem -LiteralPath $ArtifactRoot -Filter "TurkuazVM-*-x64-Setup.exe" -File |
+    Sort-Object LastWriteTimeUtc -Descending |
+    Select-Object -First 1
+if ($null -eq $Setup) {
+    throw "SETUP_NOT_FOUND: $ArtifactRoot"
+}
+
+try {
+    Remove-ExistingTurkuazInstallations
+
+    Write-Host "[1/2] Current-user kurulum modu dogrulaniyor..."
+    Invoke-InstallerModeSmoke -SetupPath $Setup.FullName -ModeArgument "/CurrentUser" -ExpectedScope "CurrentUser" -Label "current-user"
+
+    Write-Host "[2/2] Per-machine kurulum modu dogrulaniyor..."
+    Invoke-InstallerModeSmoke -SetupPath $Setup.FullName -ModeArgument "/AllUsers" -ExpectedScope "AllUsers" -Label "all-users"
 
     Write-Output "WINDOWS_INSTALLER_SMOKE=PASS"
     Write-Output "WINDOWS_RUNTIME_DATA_ROOT_SMOKE=PASS"
+    Write-Output "WINDOWS_DUAL_INSTALL_MODE_SMOKE=PASS"
 }
 finally {
-    Stop-TurkuazRuntimeProcesses -DesktopProcess $DesktopProcess
-    if ($null -ne $InstalledExe -and (Test-Path -LiteralPath $InstalledExe)) {
-        if ($null -ne $Uninstaller -and (Test-Path -LiteralPath $Uninstaller -PathType Leaf)) {
-            try {
-                Invoke-ProcessChecked -FilePath $Uninstaller -ArgumentList @("/S")
-            }
-            catch {
-                Write-Warning "Installer smoke cleanup failed: $($_.Exception.Message)"
-            }
-        }
-    }
+    Stop-TurkuazRuntimeProcesses -DesktopProcess $null
+    try { Remove-ExistingTurkuazInstallations } catch { Write-Warning "Installer smoke cleanup failed: $($_.Exception.Message)" }
     if (Test-Path -LiteralPath $SmokeLocalAppData) {
         Remove-Item -LiteralPath $SmokeLocalAppData -Recurse -Force -ErrorAction SilentlyContinue
     }
