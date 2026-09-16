@@ -1,8 +1,8 @@
 # Dosya Yolu: /turkuazvm/.github/workflows/release-publish.yml
-# Amac: main uzerindeki surum metadata'sindan GitHub tag ve Release olusturur
+# Amac: main uzerindeki surum metadata'sindan GitHub tag ve Release olusturur, Windows dagitim workflow'unu tag ref'inde baslatir
 # Modul - YAML
-# Version: 0.41.3
-# Aciklama: Workspace surumunu okuyup v<surum> tag'ini ve RELEASE_NOTES_v<surum>.md tabanli GitHub Release'i idempotent olarak yayinlar
+# Version: 0.41.4
+# Aciklama: Workspace surumunu okuyup v<surum> tag'ini ve RELEASE_NOTES_v<surum>.md tabanli GitHub Release'i idempotent yayinlar; eksik Windows assetleri icin workflow_dispatch kullanir
 # Bagimli Oldugu Katman: Tool | CI/CD
 
 name: TurkuazVM Release Publisher
@@ -20,6 +20,7 @@ on:
       - ".github/workflows/release-publish.yml"
 
 permissions:
+  actions: write
   contents: write
 
 concurrency:
@@ -94,3 +95,32 @@ jobs:
             --title "TurkuazVM ${TAG}" \
             --notes-file "RELEASE_NOTES_v${VERSION}.md" \
             --verify-tag
+
+      - name: Dispatch Windows release distribution when assets are missing
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          setup="TurkuazVM-${VERSION}-x64-Setup.exe"
+          portable="TurkuazVM-${VERSION}-x64-Portable.zip"
+          hashes="TurkuazVM-${VERSION}-SHA256SUMS.txt"
+          asset_names="$(gh release view "${TAG}" --json assets --jq '.assets[].name')"
+
+          missing=0
+          for expected in "${setup}" "${portable}" "${hashes}"; do
+            if ! grep -Fxq "${expected}" <<<"${asset_names}"; then
+              echo "Missing release asset: ${expected}"
+              missing=1
+            fi
+          done
+
+          if [[ "${missing}" -eq 0 ]]; then
+            echo "Windows release assets already exist for ${TAG}"
+            exit 0
+          fi
+
+          echo "Dispatching Windows Distribution on ${TAG}"
+          gh workflow run windows-distribution.yml --ref "${TAG}"
