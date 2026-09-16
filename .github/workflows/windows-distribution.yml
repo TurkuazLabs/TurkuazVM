@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/.github/workflows/windows-distribution.yml
-# 📌 Amac: Windows NSIS installer, portable ZIP ve SHA-256 release assetlerini uretir
+# 📌 Amac: Windows NSIS installer, portable ZIP ve SHA-256 release assetlerini uretir ve kurulum smoke testi yapar
 # 📌 Modul - GitHub Actions
 # Version: 0.41.4
-# Aciklama: PR'de gercek Windows packaging smoke testi yapar; v* tag'lerinde paketleri GitHub Release'e yukler
+# Aciklama: PR/tag akisinda gercek Windows packaging + sessiz install/uninstall smoke testi yapar; v* tag'lerinde dogrulanan paketleri GitHub Release'e yukler
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 name: TurkuazVM Windows Distribution
@@ -16,6 +16,7 @@ on:
       - "apps/display/**"
       - "config/**"
       - "scripts/package_windows_distribution.ps1"
+      - "scripts/test_windows_installer_smoke.ps1"
       - "scripts/tests/test_windows_distribution_contract.py"
       - ".github/workflows/windows-distribution.yml"
       - "Cargo.toml"
@@ -65,6 +66,10 @@ jobs:
       - name: Build NSIS and portable packages
         shell: pwsh
         run: ./scripts/package_windows_distribution.ps1
+
+      - name: Smoke test NSIS install and uninstall
+        shell: pwsh
+        run: ./scripts/test_windows_installer_smoke.ps1
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
