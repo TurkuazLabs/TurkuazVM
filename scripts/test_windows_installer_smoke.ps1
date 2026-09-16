@@ -2,7 +2,7 @@
 # 📌 Amac: Uretilen TurkuazVM NSIS paketini gercek Windows runner uzerinde sessiz kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
 # Version: 0.41.4
-# Aciklama: Setup exit code, HKCU uninstall kaydi, kurulu runtime dosyalari/config yollarini ve sessiz uninstall davranisini fail-closed test eder
+# Aciklama: Setup exit code, HKCU uninstall kaydi, tirnakli registry yollari, kurulu runtime dosyalari/config ve sessiz uninstall davranisini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -31,6 +31,15 @@ function Invoke-ProcessChecked {
     }
 }
 
+function Normalize-RegistryPath {
+    param([AllowEmptyString()][string]$Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return ""
+    }
+    return $Value.Trim().Trim([char]34)
+}
+
 function Get-TurkuazUninstallEntry {
     $Entries = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" -ErrorAction SilentlyContinue
     return $Entries |
@@ -42,8 +51,9 @@ function Get-TurkuazUninstallEntry {
 function Resolve-UninstallerPath {
     param([Parameter(Mandatory = $true)]$Entry)
 
-    if (-not [string]::IsNullOrWhiteSpace([string]$Entry.InstallLocation)) {
-        $Candidate = Join-Path ([string]$Entry.InstallLocation) "uninstall.exe"
+    $InstallLocation = Normalize-RegistryPath -Value ([string]$Entry.InstallLocation)
+    if (-not [string]::IsNullOrWhiteSpace($InstallLocation)) {
+        $Candidate = Join-Path $InstallLocation "uninstall.exe"
         if (Test-Path -LiteralPath $Candidate -PathType Leaf) {
             return (Resolve-Path -LiteralPath $Candidate).Path
         }
