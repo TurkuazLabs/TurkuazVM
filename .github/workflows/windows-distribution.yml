@@ -1,0 +1,100 @@
+# 📄 Dosya Yolu: /turkuazvm/.github/workflows/windows-distribution.yml
+# 📌 Amac: Windows NSIS installer, portable ZIP ve SHA-256 release assetlerini uretir
+# 📌 Modul - GitHub Actions
+# Version: 0.41.4
+# Aciklama: PR'de gercek Windows packaging smoke testi yapar; v* tag'lerinde paketleri GitHub Release'e yukler
+# Bagimli Oldugu Katman: Tool | CI/CD | View
+
+name: TurkuazVM Windows Distribution
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apps/desktop/src-tauri/**"
+      - "apps/engine/**"
+      - "apps/display/**"
+      - "config/**"
+      - "scripts/package_windows_distribution.ps1"
+      - "scripts/tests/test_windows_distribution_contract.py"
+      - ".github/workflows/windows-distribution.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-distribution-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: package-windows-x64
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: turkuazvm-windows-distribution
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install prebuilt Tauri CLI
+        shell: pwsh
+        run: npm install --global @tauri-apps/cli@2
+
+      - name: Validate distribution contract
+        shell: pwsh
+        run: python scripts/tests/test_windows_distribution_contract.py
+
+      - name: Build NSIS and portable packages
+        shell: pwsh
+        run: ./scripts/package_windows_distribution.ps1
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TurkuazVM-Windows-x64
+          path: artifacts/distribution/windows/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Wait for GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          for ($Attempt = 1; $Attempt -le 30; $Attempt++) {
+            gh release view $env:TAG *> $null
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "Release hazir: $env:TAG"
+              exit 0
+            }
+            Start-Sleep -Seconds 10
+          }
+          throw "GitHub Release bulunamadi: $env:TAG"
+
+      - name: Upload files to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release upload $env:TAG artifacts/distribution/windows/* --clobber
