@@ -119,8 +119,8 @@ if ((Get-Content -LiteralPath $RuntimeConfigPath -Raw) -match 'target/debug/turk
 }
 
 Write-Host "[3/6] Tauri NSIS installer derleniyor..."
-Invoke-NativeChecked -FilePath "cargo" -Arguments @(
-    "tauri", "build",
+Invoke-NativeChecked -FilePath "tauri" -Arguments @(
+    "build",
     "--bundles", "nsis",
     "--config", "src-tauri/tauri.windows.conf.json5"
 ) -WorkingDirectory $DesktopRoot
