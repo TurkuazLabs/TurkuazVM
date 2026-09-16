@@ -13,7 +13,9 @@ mod services;
 mod tools;
 mod views;
 
+#[cfg(windows)]
 use std::fs;
+#[cfg(windows)]
 use std::path::Path;
 use std::{env, thread};
 
@@ -46,10 +48,15 @@ use views::console_view::ConsoleView;
 const CONFIG_ENV: &str = "TURKUAZVM_CONFIG";
 const PACKAGED_CONFIG_RELATIVE_PATH: &str = "config/turkuazvm.yml";
 const PORTABLE_MARKER_FILE: &str = "README-PORTABLE.txt";
+#[cfg(windows)]
 const WINDOWS_LOCAL_APP_DATA_ENV: &str = "LOCALAPPDATA";
+#[cfg(windows)]
 const RUNTIME_PRODUCT_DIRECTORY: &str = "TurkuazVM";
+#[cfg(windows)]
 const RUNTIME_CONFIG_DIRECTORY: &str = "config";
+#[cfg(windows)]
 const RUNTIME_DOWNLOAD_SOURCES_FILE: &str = "download-sources.yml";
+#[cfg(windows)]
 const RUNTIME_STATIC_CONFIG_FILES: [&str; 2] = ["game-catalog.yml", "guest-catalog.yml"];
 
 fn select_packaged_working_directory() -> Result<(), String> {
