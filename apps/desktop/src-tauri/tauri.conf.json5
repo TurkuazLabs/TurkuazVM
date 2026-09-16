@@ -1,13 +1,13 @@
 // 📄 Dosya Yolu: /turkuazvm/apps/desktop/src-tauri/tauri.conf.json5
 // 📌 Amac: TurkuazVM Desktop Tauri pencere, frontend ve bundle ayarlarini tanimlar
 // 📌 Modul - JSON5
-// Version: 0.41.3
-// Aciklama: v0.41.3 CI ve release hardening patchi ile Desktop bundle surumunu workspace ile hizalar
+// Version: 0.41.4
+// Aciklama: v0.41.4 Windows NSIS/portable dagitim patchi ile Desktop bundle surumunu workspace ile hizalar
 // Bagimli Oldugu Katman: View | Tool
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "TurkuazVM",
-  "version": "0.41.3",
+  "version": "0.41.4",
   "identifier": "com.turkuazvm.desktop",
   "build": {
     "frontendDist": "../ui"
