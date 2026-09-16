@@ -2,7 +2,7 @@
 # 📌 Amac: Uretilen TurkuazVM NSIS paketini current-user ve per-machine modlarinda gercek Windows runner uzerinde kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
 # Version: 0.41.5
-# Aciklama: /CurrentUser ve /AllUsers kurulumlarini, registry scope'larini, LOCALAPPDATA runtime materialization'ini ve uninstall sonrasi kullanici verisi korunmasini fail-closed test eder
+# Aciklama: /CurrentUser ve /AllUsers kurulumlarini, registry scope'larini, Windows known-folder install koklerini, LOCALAPPDATA runtime materialization'ini ve uninstall sonrasi kullanici verisi korunmasini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -18,6 +18,13 @@ if ([string]::IsNullOrWhiteSpace($ArtifactRoot)) {
     $ArtifactRoot = Join-Path $Root "artifacts/distribution/windows"
 }
 $ArtifactRoot = (Resolve-Path -LiteralPath $ArtifactRoot).Path
+
+# Installer target location and application runtime location are deliberately tested
+# as separate concepts. NSIS resolves install folders through Windows known folders,
+# while TurkuazVM runtime state follows the LOCALAPPDATA environment inherited by the app.
+$WindowsLocalAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+$WindowsProgramFiles = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
+$WindowsProgramFilesX86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
 $OriginalLocalAppData = $env:LOCALAPPDATA
 $SmokeLocalAppData = Join-Path ([System.IO.Path]::GetTempPath()) ("TurkuazVM-installer-smoke-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $SmokeLocalAppData -Force | Out-Null
@@ -178,6 +185,41 @@ function Assert-InstalledLayout {
     return $RequiredPaths[0]
 }
 
+function Assert-InstallRootScope {
+    param(
+        [Parameter(Mandatory = $true)][string]$InstallRoot,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("CurrentUser", "AllUsers")]
+        [string]$ExpectedScope
+    )
+
+    if ($ExpectedScope -eq "CurrentUser") {
+        if ([string]::IsNullOrWhiteSpace($WindowsLocalAppData)) {
+            throw "WINDOWS_LOCALAPPDATA_KNOWN_FOLDER_MISSING"
+        }
+        if (-not $InstallRoot.StartsWith($WindowsLocalAppData, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "CURRENT_USER_INSTALL_OUTSIDE_WINDOWS_LOCALAPPDATA: $InstallRoot"
+        }
+        return
+    }
+
+    $AllowedProgramRoots = @($WindowsProgramFiles, $WindowsProgramFilesX86) |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    if ($AllowedProgramRoots.Count -eq 0) {
+        throw "WINDOWS_PROGRAM_FILES_KNOWN_FOLDER_MISSING"
+    }
+    $MatchesProgramRoot = $false
+    foreach ($ProgramRoot in $AllowedProgramRoots) {
+        if ($InstallRoot.StartsWith($ProgramRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $MatchesProgramRoot = $true
+            break
+        }
+    }
+    if (-not $MatchesProgramRoot) {
+        throw "ALL_USERS_INSTALL_OUTSIDE_PROGRAM_FILES: $InstallRoot"
+    }
+}
+
 function Assert-PackagedRuntimeTemplate {
     param([Parameter(Mandatory = $true)][string]$InstallRoot)
 
@@ -282,12 +324,7 @@ function Invoke-InstallerModeSmoke {
     if (-not (Test-Path -LiteralPath $InstallRoot -PathType Container)) {
         throw "INSTALL_ROOT_NOT_FOUND: $InstallRoot"
     }
-    if ($ExpectedScope -eq "CurrentUser" -and -not $InstallRoot.StartsWith($SmokeLocalAppData, [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "CURRENT_USER_INSTALL_OUTSIDE_LOCALAPPDATA: $InstallRoot"
-    }
-    if ($ExpectedScope -eq "AllUsers" -and $InstallRoot.StartsWith($SmokeLocalAppData, [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "ALL_USERS_INSTALL_INSIDE_LOCALAPPDATA: $InstallRoot"
-    }
+    Assert-InstallRootScope -InstallRoot $InstallRoot -ExpectedScope $ExpectedScope
 
     $InstalledExe = Assert-InstalledLayout -InstallRoot $InstallRoot
     Assert-PackagedRuntimeTemplate -InstallRoot $InstallRoot
