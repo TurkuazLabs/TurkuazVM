@@ -29,9 +29,11 @@ def main() -> None:
     require("scripts/package_windows_distribution.ps1", "TurkuazVM.exe")
     require("scripts/package_windows_distribution.ps1", "Portable.zip")
     require("scripts/package_windows_distribution.ps1", "SHA256SUMS.txt")
-    require("scripts/package_windows_distribution.ps1", '"tauri", "build"')
+    require("scripts/package_windows_distribution.ps1", 'Invoke-NativeChecked -FilePath "tauri"')
 
     require(".github/workflows/windows-distribution.yml", "windows-latest")
+    require(".github/workflows/windows-distribution.yml", "actions/setup-node@v4")
+    require(".github/workflows/windows-distribution.yml", "@tauri-apps/cli@2")
     require(".github/workflows/windows-distribution.yml", "package_windows_distribution.ps1")
     require(".github/workflows/windows-distribution.yml", "actions/upload-artifact@v4")
     require(".github/workflows/windows-distribution.yml", "gh release upload")
