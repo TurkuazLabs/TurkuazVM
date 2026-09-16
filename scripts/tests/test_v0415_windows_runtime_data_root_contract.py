@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/tests/test_v0415_windows_runtime_data_root_contract.py
-# 📌 Amac: v0.41.5 Windows installed/portable runtime data-root ayrimini statik olarak dogrular
+# 📌 Amac: v0.41.5 Windows installed/portable runtime data-root ve dual install-mode ayrimini statik olarak dogrular
 # 📌 Modul - Python Test
 # Version: 0.41.5
-# Aciklama: Installed modun LOCALAPPDATA runtime config materialization'ini, portable marker bypass'ini ve gercek installer smoke baglantisini fail-closed korur
+# Aciklama: LOCALAPPDATA runtime materialization'ini, portable marker bypass'ini ve current-user/per-machine gercek installer smoke baglantisini fail-closed korur
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 from pathlib import Path
@@ -32,6 +32,9 @@ def main() -> None:
     require(desktop_main, 'build_script: guest/android-image/scripts/build_turkuaz_android_image.sh')
     require(desktop_main, "env::set_current_dir(&runtime_root)")
 
+    tauri_windows = "apps/desktop/src-tauri/tauri.windows.conf.json5"
+    require(tauri_windows, '"installMode": "both"')
+
     package_script = "scripts/package_windows_distribution.ps1"
     require(package_script, 'Join-Path $PortableStage "README-PORTABLE.txt"')
     require(package_script, '"display_executable_path: bin/turkuazvm-display.exe"')
@@ -40,15 +43,22 @@ def main() -> None:
     smoke = "scripts/test_windows_installer_smoke.ps1"
     require(smoke, '$SmokeLocalAppData = Join-Path ([System.IO.Path]::GetTempPath())')
     require(smoke, '$env:LOCALAPPDATA = $SmokeLocalAppData')
+    require(smoke, 'ValidateSet("/CurrentUser", "/AllUsers")')
+    require(smoke, 'ModeArgument "/CurrentUser"')
+    require(smoke, 'ModeArgument "/AllUsers"')
+    require(smoke, 'ExpectedScope "CurrentUser"')
+    require(smoke, 'ExpectedScope "AllUsers"')
     require(smoke, 'Start-Process -FilePath $InstalledExe -PassThru')
     require(smoke, 'Wait-FileCreated -Path $RuntimeConfigPath -Process $DesktopProcess')
     require(smoke, 'RUNTIME_CONFIG_ABSOLUTE_ASSET_PATH_MISSING')
     require(smoke, 'UNINSTALL_REMOVED_USER_RUNTIME_CONFIG')
     require(smoke, 'WINDOWS_RUNTIME_DATA_ROOT_SMOKE=PASS')
+    require(smoke, 'WINDOWS_DUAL_INSTALL_MODE_SMOKE=PASS')
 
     workflow = ".github/workflows/windows-distribution.yml"
     require(workflow, "test_v0415_windows_runtime_data_root_contract.py")
     require(workflow, "test_windows_installer_smoke.ps1")
+    require(workflow, "current-user, per-machine, AppData runtime")
 
     print("V0415_WINDOWS_RUNTIME_DATA_ROOT_CONTRACT=PASS")
 
