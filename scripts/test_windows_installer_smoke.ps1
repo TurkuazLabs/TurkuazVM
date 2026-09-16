@@ -51,6 +51,19 @@ function Normalize-RegistryPath {
     return $Value.Trim().Trim([char]34)
 }
 
+function Get-SafePropertyValue {
+    param(
+        [Parameter(Mandatory = $true)]$InputObject,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+
+    $Property = $InputObject.PSObject.Properties[$Name]
+    if ($null -eq $Property) {
+        return $null
+    }
+    return $Property.Value
+}
+
 function Get-TurkuazUninstallEntry {
     param(
         [Parameter(Mandatory = $true)]
@@ -60,15 +73,15 @@ function Get-TurkuazUninstallEntry {
 
     $Entries = Get-ItemProperty -Path $RegistryPaths[$Scope] -ErrorAction SilentlyContinue
     return $Entries |
-        Where-Object { $_.DisplayName -eq "TurkuazVM" } |
-        Sort-Object { [string]$_.DisplayVersion } -Descending |
+        Where-Object { [string](Get-SafePropertyValue -InputObject $_ -Name "DisplayName") -eq "TurkuazVM" } |
+        Sort-Object { [string](Get-SafePropertyValue -InputObject $_ -Name "DisplayVersion") } -Descending |
         Select-Object -First 1
 }
 
 function Resolve-UninstallerPath {
     param([Parameter(Mandatory = $true)]$Entry)
 
-    $InstallLocation = Normalize-RegistryPath -Value ([string]$Entry.InstallLocation)
+    $InstallLocation = Normalize-RegistryPath -Value ([string](Get-SafePropertyValue -InputObject $Entry -Name "InstallLocation"))
     if (-not [string]::IsNullOrWhiteSpace($InstallLocation)) {
         $Candidate = Join-Path $InstallLocation "uninstall.exe"
         if (Test-Path -LiteralPath $Candidate -PathType Leaf) {
@@ -76,7 +89,7 @@ function Resolve-UninstallerPath {
         }
     }
 
-    $Command = [string]$Entry.UninstallString
+    $Command = [string](Get-SafePropertyValue -InputObject $Entry -Name "UninstallString")
     if ($Command -match '^\s*"([^"]+\.exe)"') {
         return $Matches[1]
     }
