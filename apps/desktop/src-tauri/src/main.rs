@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/apps/desktop/src-tauri/src/main.rs
 // # 📌 Amac: TurkuazVM Desktop Tauri composition root ve runtime update bridge giris noktasini saglar
 // # 📌 Modul - Rust
-// # Version: 0.36.0
-// # Aciklama: Host profilleri, Engine API, VM lifecycle, ag medya, Connection Center ve Android Runtime commandlarini compose eder
+// # Version: 0.41.4
+// # Aciklama: Paketli runtime kokunu EXE yanindaki config ile sabitler; Host profilleri, Engine API, VM lifecycle, ag medya, Connection Center ve Android Runtime commandlarini compose eder
 // # Bagimli Oldugu Katman: Controller | Service | Tool | View
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
@@ -13,7 +13,7 @@ mod services;
 mod tools;
 mod views;
 
-use std::thread;
+use std::{env, thread};
 
 use tauri::{Emitter, Manager};
 
@@ -41,7 +41,31 @@ use services::app_state::{DesktopAppState, EVENT_RUNTIME_UPDATE};
 use services::desktop_service::DesktopService;
 use views::console_view::ConsoleView;
 
+const CONFIG_ENV: &str = "TURKUAZVM_CONFIG";
+const PACKAGED_CONFIG_RELATIVE_PATH: &str = "config/turkuazvm.yml";
+
+fn select_packaged_working_directory() {
+    if env::var_os(CONFIG_ENV).is_some() {
+        return;
+    }
+
+    let Ok(executable_path) = env::current_exe() else {
+        return;
+    };
+    let Some(executable_directory) = executable_path.parent() else {
+        return;
+    };
+    if executable_directory
+        .join(PACKAGED_CONFIG_RELATIVE_PATH)
+        .is_file()
+    {
+        let _ = env::set_current_dir(executable_directory);
+    }
+}
+
 fn main() {
+    select_packaged_working_directory();
+
     let config = match DesktopConfig::load() {
         Ok(config) => config,
         Err(error) => {
