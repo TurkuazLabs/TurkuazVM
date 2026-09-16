@@ -2,7 +2,7 @@
 # 📌 Amac: TurkuazVM Windows NSIS installer ve portable ZIP dagitim paketlerini uretir
 # 📌 Modul - PowerShell Tool
 # Version: 0.41.4
-# Aciklama: Engine/Display release binarylerini stage eder, runtime config yollarini dagitim icin duzeltir, Tauri NSIS ve portable paket olusturur
+# Aciklama: Engine/Display release binarylerini stage eder, runtime config yollarini dagitim icin duzeltir, gecici Tauri resource config ile NSIS ve portable paket olusturur
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -16,6 +16,7 @@ $CargoToml = Join-Path $Root "Cargo.toml"
 $DesktopRoot = Join-Path $Root "apps/desktop"
 $TauriRoot = Join-Path $DesktopRoot "src-tauri"
 $StageRoot = Join-Path $TauriRoot "distribution/windows/stage"
+$GeneratedTauriConfig = Join-Path $TauriRoot "tauri.distribution.generated.conf.json5"
 $TargetRelease = Join-Path $Root "target/release"
 $OutputRoot = Join-Path $Root "artifacts/distribution/windows"
 
@@ -118,12 +119,30 @@ if ((Get-Content -LiteralPath $RuntimeConfigPath -Raw) -match 'target/debug/turk
     throw "DISTRIBUTION_CONFIG_STILL_REFERENCES_DEBUG_BINARY"
 }
 
+$GeneratedTauriConfigContent = @'
+{
+  "bundle": {
+    "resources": {
+      "distribution/windows/stage/": ""
+    }
+  }
+}
+'@
+Set-Content -LiteralPath $GeneratedTauriConfig -Value $GeneratedTauriConfigContent -Encoding utf8
+
 Write-Host "[3/6] Tauri NSIS installer derleniyor..."
-Invoke-NativeChecked -FilePath "tauri" -Arguments @(
-    "build",
-    "--bundles", "nsis",
-    "--config", "src-tauri/tauri.windows.conf.json5"
-) -WorkingDirectory $DesktopRoot
+try {
+    Invoke-NativeChecked -FilePath "tauri" -Arguments @(
+        "build",
+        "--bundles", "nsis",
+        "--config", "src-tauri/tauri.distribution.generated.conf.json5"
+    ) -WorkingDirectory $DesktopRoot
+}
+finally {
+    if (Test-Path -LiteralPath $GeneratedTauriConfig -PathType Leaf) {
+        Remove-Item -LiteralPath $GeneratedTauriConfig -Force
+    }
+}
 
 $DesktopExe = Join-Path $TargetRelease "turkuazvm-desktop.exe"
 if (-not (Test-Path -LiteralPath $DesktopExe -PathType Leaf)) {
