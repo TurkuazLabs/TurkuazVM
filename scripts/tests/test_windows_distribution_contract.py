@@ -2,7 +2,7 @@
 # 📌 Amac: Windows NSIS/portable dagitim akisinin temel kontratini statik olarak dogrular
 # 📌 Modul - Python Test
 # Version: 0.41.4
-# Aciklama: Tauri NSIS config, Windows distribution workflow, packaged runtime kok secimi ve packaging Tool arasindaki zorunlu baglantilari kontrol eder
+# Aciklama: Tauri NSIS config, Windows distribution workflow, packaged runtime kok secimi, installer smoke ve packaging Tool arasindaki zorunlu baglantilari kontrol eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 from pathlib import Path
@@ -40,6 +40,17 @@ def main() -> None:
     require("scripts/package_windows_distribution.ps1", "tauri.distribution.generated.conf.json5")
     require("scripts/package_windows_distribution.ps1", "Remove-Item -LiteralPath $GeneratedTauriConfig -Force")
 
+    require("scripts/test_windows_installer_smoke.ps1", 'Start-Process -FilePath $FilePath')
+    require("scripts/test_windows_installer_smoke.ps1", 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*')
+    require("scripts/test_windows_installer_smoke.ps1", "Normalize-RegistryPath")
+    require("scripts/test_windows_installer_smoke.ps1", ".Trim([char]34)")
+    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "turkuazvm-desktop.exe"')
+    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "bin/turkuazvm-engine.exe"')
+    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "bin/turkuazvm-display.exe"')
+    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "config/turkuazvm.yml"')
+    require("scripts/test_windows_installer_smoke.ps1", 'Invoke-ProcessChecked -FilePath $Uninstaller -ArgumentList @("/S")')
+    require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_INSTALLER_SMOKE=PASS')
+
     require("apps/desktop/src-tauri/src/main.rs", "select_packaged_working_directory();")
     require("apps/desktop/src-tauri/src/main.rs", "env::current_exe()")
     require("apps/desktop/src-tauri/src/main.rs", 'const PACKAGED_CONFIG_RELATIVE_PATH: &str = "config/turkuazvm.yml";')
@@ -51,6 +62,8 @@ def main() -> None:
     require(".github/workflows/windows-distribution.yml", "actions/setup-node@v4")
     require(".github/workflows/windows-distribution.yml", "@tauri-apps/cli@2")
     require(".github/workflows/windows-distribution.yml", "package_windows_distribution.ps1")
+    require(".github/workflows/windows-distribution.yml", "test_windows_installer_smoke.ps1")
+    require(".github/workflows/windows-distribution.yml", "Smoke test NSIS install and uninstall")
     require(".github/workflows/windows-distribution.yml", "actions/upload-artifact@v4")
     require(".github/workflows/windows-distribution.yml", "gh release upload")
     require(".github/workflows/windows-distribution.yml", "refs/tags/v")
