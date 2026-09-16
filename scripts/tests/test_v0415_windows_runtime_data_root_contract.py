@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/tests/test_v0415_windows_runtime_data_root_contract.py
-# 📌 Amac: v0.41.5 Windows installed/portable runtime data-root ve dual install-mode ayrimini statik olarak dogrular
+# 📌 Amac: v0.41.5 Windows installed/portable runtime data-root, dual install-mode ve Turkce NSIS MultiUser ayrimini statik olarak dogrular
 # 📌 Modul - Python Test
 # Version: 0.41.5
-# Aciklama: LOCALAPPDATA runtime materialization'ini, portable marker bypass'ini ve current-user/per-machine gercek installer smoke baglantisini fail-closed korur
+# Aciklama: LOCALAPPDATA runtime materialization'ini, portable marker bypass'ini, current-user/per-machine gercek installer smoke baglantisini ve Turkce MultiUser hook'unu fail-closed korur
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 from pathlib import Path
@@ -34,6 +34,15 @@ def main() -> None:
 
     tauri_windows = "apps/desktop/src-tauri/tauri.windows.conf.json5"
     require(tauri_windows, '"installMode": "both"')
+    require(tauri_windows, '"languages": ["Turkish", "English"]')
+    require(tauri_windows, '"installerHooks": "windows/nsis-hooks.nsh"')
+
+    nsis_hooks = "apps/desktop/src-tauri/windows/nsis-hooks.nsh"
+    require(nsis_hooks, 'MULTIUSER_TEXT_INSTALLMODE_TITLE "Kurulum türünü seçin"')
+    require(nsis_hooks, 'MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "TurkuazVM\'in kimler için kurulacağını seçin."')
+    require(nsis_hooks, 'MULTIUSER_INNERTEXT_INSTALLMODE_TOP')
+    require(nsis_hooks, 'MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS')
+    require(nsis_hooks, 'MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER')
 
     package_script = "scripts/package_windows_distribution.ps1"
     require(package_script, 'Join-Path $PortableStage "README-PORTABLE.txt"')
