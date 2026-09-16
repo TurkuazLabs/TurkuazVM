@@ -2,7 +2,7 @@
 # 📌 Amac: Windows NSIS installer, portable ZIP ve SHA-256 release assetlerini uretir ve kurulum smoke testi yapar
 # 📌 Modul - GitHub Actions
 # Version: 0.41.5
-# Aciklama: PR/tag akisinda distribution + v0.41.5 runtime-root kontratini, gercek Windows packaging ve sessiz install/AppData/uninstall smoke testini calistirir
+# Aciklama: PR/tag akisinda dual install-mode + runtime-root kontratini, gercek Windows packaging ve current-user/per-machine AppData smoke testlerini calistirir
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 name: TurkuazVM Windows Distribution
@@ -70,7 +70,7 @@ jobs:
         shell: pwsh
         run: ./scripts/package_windows_distribution.ps1
 
-      - name: Smoke test NSIS install, AppData runtime and uninstall
+      - name: Smoke test NSIS current-user, per-machine, AppData runtime and uninstall
         shell: pwsh
         run: ./scripts/test_windows_installer_smoke.ps1
 
