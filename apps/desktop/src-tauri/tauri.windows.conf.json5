@@ -2,15 +2,12 @@
 // 📌 Amac: TurkuazVM Windows NSIS dagitim ayarlarini ana Tauri config uzerine uygular
 // 📌 Modul - JSON5
 // Version: 0.41.4
-// Aciklama: Current-user NSIS, Turkce/Ingilizce dil secimi ve staged runtime kaynaklarini tanimlar
+// Aciklama: Current-user NSIS ve Turkce/Ingilizce dil secimini tanimlar; gecici runtime resource stage'i packaging Tool tarafindan eklenir
 // Bagimli Oldugu Katman: Tool | View | CI/CD
 {
   "bundle": {
     "targets": ["nsis"],
     "publisher": "TurkuazLabs",
-    "resources": {
-      "distribution/windows/stage/": ""
-    },
     "windows": {
       "nsis": {
         "installMode": "currentUser",
