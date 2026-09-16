@@ -2,7 +2,7 @@
 # 📌 Amac: Uretilen TurkuazVM NSIS paketini gercek Windows runner uzerinde sessiz kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
 # Version: 0.41.4
-# Aciklama: Setup exit code, HKCU uninstall kaydi, tirnakli registry yollari, kurulu runtime dosyalari/config ve sessiz uninstall davranisini fail-closed test eder
+# Aciklama: Setup exit code, HKCU uninstall kaydi, tirnakli registry yollari, gercek NSIS Desktop binary adi, runtime dosyalari/config ve sessiz uninstall davranisini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -125,7 +125,7 @@ try {
     }
 
     $RequiredPaths = @(
-        (Join-Path $InstallRoot "TurkuazVM.exe"),
+        (Join-Path $InstallRoot "turkuazvm-desktop.exe"),
         (Join-Path $InstallRoot "bin/turkuazvm-engine.exe"),
         (Join-Path $InstallRoot "bin/turkuazvm-display.exe"),
         (Join-Path $InstallRoot "config/turkuazvm.yml")
