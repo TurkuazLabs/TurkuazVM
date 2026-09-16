@@ -44,7 +44,7 @@ def main() -> None:
     require("scripts/test_windows_installer_smoke.ps1", 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*')
     require("scripts/test_windows_installer_smoke.ps1", "Normalize-RegistryPath")
     require("scripts/test_windows_installer_smoke.ps1", ".Trim([char]34)")
-    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "TurkuazVM.exe"')
+    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "turkuazvm-desktop.exe"')
     require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "bin/turkuazvm-engine.exe"')
     require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "bin/turkuazvm-display.exe"')
     require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "config/turkuazvm.yml"')
