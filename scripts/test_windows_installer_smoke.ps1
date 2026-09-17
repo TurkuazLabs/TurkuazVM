@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/test_windows_installer_smoke.ps1
 # 📌 Amac: Uretilen TurkuazVM NSIS paketini current-user ve per-machine modlarinda gercek Windows runner uzerinde kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
-# Version: 0.41.5
-# Aciklama: /CurrentUser ve /AllUsers kurulumlarini, registry scope'larini, Windows known-folder install koklerini, LOCALAPPDATA runtime materialization'ini ve uninstall sonrasi kullanici verisi korunmasini fail-closed test eder
+# Version: 0.41.6
+# Aciklama: /CurrentUser ve /AllUsers kurulumlarini, TurkuazLabs/TurkuazVM install-root'unu, registry scope'larini, LOCALAPPDATA runtime materialization'ini ve uninstall davranisini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -20,11 +20,12 @@ if ([string]::IsNullOrWhiteSpace($ArtifactRoot)) {
 $ArtifactRoot = (Resolve-Path -LiteralPath $ArtifactRoot).Path
 
 # Installer target location and application runtime location are deliberately tested
-# as separate concepts. NSIS resolves install folders through Windows known folders,
-# while TurkuazVM runtime state follows the LOCALAPPDATA environment inherited by the app.
+# as separate concepts. Installed binaries live below TurkuazLabs/TurkuazVM, while
+# writable runtime state remains under the dedicated LOCALAPPDATA/TurkuazVM root.
 $WindowsLocalAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
 $WindowsProgramFiles = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
 $WindowsProgramFilesX86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+$BrandInstallRelativePath = "TurkuazLabs\TurkuazVM"
 $OriginalLocalAppData = $env:LOCALAPPDATA
 $SmokeLocalAppData = Join-Path ([System.IO.Path]::GetTempPath()) ("TurkuazVM-installer-smoke-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $SmokeLocalAppData -Force | Out-Null
@@ -56,6 +57,11 @@ function Normalize-RegistryPath {
         return ""
     }
     return $Value.Trim().Trim([char]34)
+}
+
+function Normalize-FullPath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    return [System.IO.Path]::GetFullPath($Path).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
 }
 
 function Get-SafePropertyValue {
@@ -193,30 +199,38 @@ function Assert-InstallRootScope {
         [string]$ExpectedScope
     )
 
+    $NormalizedInstallRoot = Normalize-FullPath -Path $InstallRoot
+
     if ($ExpectedScope -eq "CurrentUser") {
         if ([string]::IsNullOrWhiteSpace($WindowsLocalAppData)) {
             throw "WINDOWS_LOCALAPPDATA_KNOWN_FOLDER_MISSING"
         }
-        if (-not $InstallRoot.StartsWith($WindowsLocalAppData, [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "CURRENT_USER_INSTALL_OUTSIDE_WINDOWS_LOCALAPPDATA: $InstallRoot"
+        $ExpectedRoot = Normalize-FullPath -Path (Join-Path $WindowsLocalAppData $BrandInstallRelativePath)
+        if (-not $NormalizedInstallRoot.Equals($ExpectedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "CURRENT_USER_INSTALL_ROOT_MISMATCH: expected=$ExpectedRoot actual=$NormalizedInstallRoot"
         }
         return
     }
 
     $AllowedProgramRoots = @($WindowsProgramFiles, $WindowsProgramFilesX86) |
-        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        Select-Object -Unique
     if ($AllowedProgramRoots.Count -eq 0) {
         throw "WINDOWS_PROGRAM_FILES_KNOWN_FOLDER_MISSING"
     }
-    $MatchesProgramRoot = $false
-    foreach ($ProgramRoot in $AllowedProgramRoots) {
-        if ($InstallRoot.StartsWith($ProgramRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-            $MatchesProgramRoot = $true
+
+    $ExpectedRoots = @($AllowedProgramRoots | ForEach-Object {
+        Normalize-FullPath -Path (Join-Path $_ $BrandInstallRelativePath)
+    })
+    $MatchesExpectedRoot = $false
+    foreach ($ExpectedRoot in $ExpectedRoots) {
+        if ($NormalizedInstallRoot.Equals($ExpectedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $MatchesExpectedRoot = $true
             break
         }
     }
-    if (-not $MatchesProgramRoot) {
-        throw "ALL_USERS_INSTALL_OUTSIDE_PROGRAM_FILES: $InstallRoot"
+    if (-not $MatchesExpectedRoot) {
+        throw "ALL_USERS_INSTALL_ROOT_MISMATCH: expected=$($ExpectedRoots -join ';') actual=$NormalizedInstallRoot"
     }
 }
 
@@ -362,10 +376,11 @@ try {
     Write-Output "WINDOWS_INSTALLER_SMOKE=PASS"
     Write-Output "WINDOWS_RUNTIME_DATA_ROOT_SMOKE=PASS"
     Write-Output "WINDOWS_DUAL_INSTALL_MODE_SMOKE=PASS"
+    Write-Output "WINDOWS_TURKUAZLABS_INSTALL_ROOT_SMOKE=PASS"
 }
 finally {
     Stop-TurkuazRuntimeProcesses -DesktopProcess $null
-    try { Remove-ExistingTurkuazInstallations } catch { Write-Warning "Installer smoke cleanup failed: $($_.Exception.Message)" }
+    try { Remove-ExistingTurkuazInstallations } catch { Write-Warning $_ }
     if (Test-Path -LiteralPath $SmokeLocalAppData) {
         Remove-Item -LiteralPath $SmokeLocalAppData -Recurse -Force -ErrorAction SilentlyContinue
     }
