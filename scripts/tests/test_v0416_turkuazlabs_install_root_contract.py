@@ -1,0 +1,63 @@
+# 📄 Dosya Yolu: /turkuazvm/scripts/tests/test_v0416_turkuazlabs_install_root_contract.py
+# 📌 Amac: v0.41.6 Windows installer kokunun TurkuazLabs/TurkuazVM hiyerarsisinde kalmasini statik olarak kilitler
+# 📌 Modul - Python Test
+# Version: 0.41.6
+# Aciklama: Pinli Tauri 2.11.4 NSIS template kaynagini, blob SHA dogrulamasini, install-root patchlerini ve gercek smoke test kontratini kontrol eder
+# Bagimli Oldugu Katman: Tool | CI/CD | View
+
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def read(path: str) -> str:
+    return (ROOT / path).read_text(encoding="utf-8")
+
+
+def require(path: str, needle: str) -> None:
+    content = read(path)
+    if needle not in content:
+        raise AssertionError(f"{path}: missing {needle!r}")
+
+
+def forbid(path: str, needle: str) -> None:
+    content = read(path)
+    if needle in content:
+        raise AssertionError(f"{path}: forbidden {needle!r}")
+
+
+def main() -> None:
+    package = "scripts/package_windows_distribution.ps1"
+    smoke = "scripts/test_windows_installer_smoke.ps1"
+    workflow = ".github/workflows/windows-distribution.yml"
+
+    require(package, '$TauriCliVersion = "2.11.4"')
+    require(package, "tauri-cli-v$TauriCliVersion")
+    require(package, '$TauriNsisTemplateBlobSha = "d372e3c391770cf231db974422a1e4f8adaac3a6"')
+    require(package, "Get-GitBlobSha1")
+    require(package, "TAURI_NSIS_TEMPLATE_BLOB_SHA_MISMATCH")
+    require(package, '!define MULTIUSER_INSTALLMODE_INSTDIR \\"TurkuazLabs\\${PRODUCTNAME}\\"')
+    require(package, '$PROGRAMFILES64\\TurkuazLabs\\${PRODUCTNAME}')
+    require(package, '$PROGRAMFILES\\TurkuazLabs\\${PRODUCTNAME}')
+    require(package, '$LOCALAPPDATA\\TurkuazLabs\\${PRODUCTNAME}')
+    require(package, '"template": "windows/installer.generated.nsi"')
+    require(package, "Remove-Item -LiteralPath $GeneratedPath -Force")
+
+    require(".gitignore", "/apps/desktop/src-tauri/windows/installer.generated.nsi")
+
+    require(smoke, '$BrandInstallRelativePath = "TurkuazLabs\\TurkuazVM"')
+    require(smoke, "CURRENT_USER_INSTALL_ROOT_MISMATCH")
+    require(smoke, "ALL_USERS_INSTALL_ROOT_MISMATCH")
+    require(smoke, "WINDOWS_TURKUAZLABS_INSTALL_ROOT_SMOKE=PASS")
+    require(smoke, '$RuntimeRoot = Join-Path $SmokeLocalAppData "TurkuazVM"')
+
+    require(workflow, "@tauri-apps/cli@2.11.4")
+    require(workflow, "test_v0416_turkuazlabs_install_root_contract.py")
+    require(workflow, "TurkuazLabs install root")
+    forbid(workflow, "@tauri-apps/cli@2\n")
+
+    print("V0416_TURKUAZLABS_INSTALL_ROOT_CONTRACT=PASS")
+
+
+if __name__ == "__main__":
+    main()
