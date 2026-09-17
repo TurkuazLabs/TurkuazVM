@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/tests/test_windows_distribution_contract.py
 # 📌 Amac: Windows NSIS/portable dagitim akisinin temel kontratini statik olarak dogrular
 # 📌 Modul - Python Test
-# Version: 0.41.5
-# Aciklama: Tauri dual NSIS install mode, packaged runtime kok secimi, LOCALAPPDATA materialization ve installer smoke arasindaki zorunlu baglantilari kontrol eder
+# Version: 0.41.6
+# Aciklama: Tauri dual NSIS install mode, TurkuazLabs install-root, packaged runtime kok secimi, LOCALAPPDATA materialization ve installer smoke baglantilarini kontrol eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 from pathlib import Path
@@ -37,8 +37,10 @@ def main() -> None:
     require("scripts/package_windows_distribution.ps1", "SHA256SUMS.txt")
     require("scripts/package_windows_distribution.ps1", 'Invoke-NativeChecked -FilePath "tauri"')
     require("scripts/package_windows_distribution.ps1", '"distribution/windows/stage/": ""')
+    require("scripts/package_windows_distribution.ps1", '"template": "windows/installer.generated.nsi"')
     require("scripts/package_windows_distribution.ps1", "tauri.distribution.generated.conf.json5")
-    require("scripts/package_windows_distribution.ps1", "Remove-Item -LiteralPath $GeneratedTauriConfig -Force")
+    require("scripts/package_windows_distribution.ps1", "installer.generated.nsi")
+    require("scripts/package_windows_distribution.ps1", "Remove-Item -LiteralPath $GeneratedPath -Force")
     require("scripts/package_windows_distribution.ps1", 'Join-Path $PortableStage "README-PORTABLE.txt"')
 
     require("scripts/test_windows_installer_smoke.ps1", 'ValidateSet("/CurrentUser", "/AllUsers")')
@@ -46,6 +48,7 @@ def main() -> None:
     require("scripts/test_windows_installer_smoke.ps1", 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*')
     require("scripts/test_windows_installer_smoke.ps1", 'ModeArgument "/CurrentUser"')
     require("scripts/test_windows_installer_smoke.ps1", 'ModeArgument "/AllUsers"')
+    require("scripts/test_windows_installer_smoke.ps1", 'TurkuazLabs\\TurkuazVM')
     require("scripts/test_windows_installer_smoke.ps1", 'Start-Process -FilePath $InstalledExe -PassThru')
     require("scripts/test_windows_installer_smoke.ps1", 'Wait-FileCreated -Path $RuntimeConfigPath -Process $DesktopProcess')
     require("scripts/test_windows_installer_smoke.ps1", 'UNINSTALL_REMOVED_USER_RUNTIME_CONFIG')
@@ -53,6 +56,7 @@ def main() -> None:
     require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_INSTALLER_SMOKE=PASS')
     require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_RUNTIME_DATA_ROOT_SMOKE=PASS')
     require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_DUAL_INSTALL_MODE_SMOKE=PASS')
+    require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_TURKUAZLABS_INSTALL_ROOT_SMOKE=PASS')
 
     require("apps/desktop/src-tauri/src/main.rs", "select_packaged_working_directory() -> Result<(), String>")
     require("apps/desktop/src-tauri/src/main.rs", "env::current_exe()")
@@ -63,14 +67,16 @@ def main() -> None:
     require("apps/desktop/src-tauri/src/main.rs", "env::set_current_dir(&runtime_root)")
 
     require(".gitignore", "/apps/desktop/src-tauri/tauri.distribution.generated.conf.json5")
+    require(".gitignore", "/apps/desktop/src-tauri/windows/installer.generated.nsi")
 
     require(".github/workflows/windows-distribution.yml", "windows-latest")
     require(".github/workflows/windows-distribution.yml", "actions/setup-node@v4")
-    require(".github/workflows/windows-distribution.yml", "@tauri-apps/cli@2")
+    require(".github/workflows/windows-distribution.yml", "@tauri-apps/cli@2.11.4")
     require(".github/workflows/windows-distribution.yml", "package_windows_distribution.ps1")
     require(".github/workflows/windows-distribution.yml", "test_windows_installer_smoke.ps1")
     require(".github/workflows/windows-distribution.yml", "test_v0415_windows_runtime_data_root_contract.py")
-    require(".github/workflows/windows-distribution.yml", "Smoke test NSIS current-user, per-machine, AppData runtime and uninstall")
+    require(".github/workflows/windows-distribution.yml", "test_v0416_turkuazlabs_install_root_contract.py")
+    require(".github/workflows/windows-distribution.yml", "Smoke test dual installer, TurkuazLabs install root, AppData runtime and uninstall")
     require(".github/workflows/windows-distribution.yml", "actions/upload-artifact@v4")
     require(".github/workflows/windows-distribution.yml", "gh release upload")
     require(".github/workflows/windows-distribution.yml", "refs/tags/v")
