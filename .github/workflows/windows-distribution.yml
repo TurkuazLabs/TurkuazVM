@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/.github/workflows/windows-distribution.yml
 # 📌 Amac: Windows NSIS installer, portable ZIP ve SHA-256 release assetlerini uretir ve kurulum smoke testi yapar
 # 📌 Modul - GitHub Actions
-# Version: 0.41.4
-# Aciklama: PR/tag akisinda gercek Windows packaging + sessiz install/uninstall smoke testi yapar; v* tag'lerinde dogrulanan paketleri GitHub Release'e yukler
+# Version: 0.41.5
+# Aciklama: PR/tag akisinda dual install-mode + runtime-root kontratini, gercek Windows packaging ve current-user/per-machine AppData smoke testlerini calistirir
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 name: TurkuazVM Windows Distribution
@@ -18,6 +18,7 @@ on:
       - "scripts/package_windows_distribution.ps1"
       - "scripts/test_windows_installer_smoke.ps1"
       - "scripts/tests/test_windows_distribution_contract.py"
+      - "scripts/tests/test_v0415_windows_runtime_data_root_contract.py"
       - ".github/workflows/windows-distribution.yml"
       - "Cargo.toml"
       - "Cargo.lock"
@@ -59,15 +60,17 @@ jobs:
         shell: pwsh
         run: npm install --global @tauri-apps/cli@2
 
-      - name: Validate distribution contract
+      - name: Validate distribution contracts
         shell: pwsh
-        run: python scripts/tests/test_windows_distribution_contract.py
+        run: |
+          python scripts/tests/test_windows_distribution_contract.py
+          python scripts/tests/test_v0415_windows_runtime_data_root_contract.py
 
       - name: Build NSIS and portable packages
         shell: pwsh
         run: ./scripts/package_windows_distribution.ps1
 
-      - name: Smoke test NSIS install and uninstall
+      - name: Smoke test NSIS current-user, per-machine, AppData runtime and uninstall
         shell: pwsh
         run: ./scripts/test_windows_installer_smoke.ps1
 

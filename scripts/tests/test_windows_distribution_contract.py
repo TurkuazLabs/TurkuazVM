@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/tests/test_windows_distribution_contract.py
 # 📌 Amac: Windows NSIS/portable dagitim akisinin temel kontratini statik olarak dogrular
 # 📌 Modul - Python Test
-# Version: 0.41.4
-# Aciklama: Tauri NSIS config, Windows distribution workflow, packaged runtime kok secimi, installer smoke ve packaging Tool arasindaki zorunlu baglantilari kontrol eder
+# Version: 0.41.5
+# Aciklama: Tauri dual NSIS install mode, packaged runtime kok secimi, LOCALAPPDATA materialization ve installer smoke arasindaki zorunlu baglantilari kontrol eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 from pathlib import Path
@@ -24,7 +24,7 @@ def forbid(path: str, needle: str) -> None:
 
 def main() -> None:
     require("apps/desktop/src-tauri/tauri.windows.conf.json5", '"targets": ["nsis"]')
-    require("apps/desktop/src-tauri/tauri.windows.conf.json5", '"installMode": "currentUser"')
+    require("apps/desktop/src-tauri/tauri.windows.conf.json5", '"installMode": "both"')
     require("apps/desktop/src-tauri/tauri.windows.conf.json5", '"Turkish"')
     require("apps/desktop/src-tauri/tauri.windows.conf.json5", '"English"')
     require("apps/desktop/src-tauri/tauri.windows.conf.json5", '"displayLanguageSelector": true')
@@ -39,22 +39,28 @@ def main() -> None:
     require("scripts/package_windows_distribution.ps1", '"distribution/windows/stage/": ""')
     require("scripts/package_windows_distribution.ps1", "tauri.distribution.generated.conf.json5")
     require("scripts/package_windows_distribution.ps1", "Remove-Item -LiteralPath $GeneratedTauriConfig -Force")
+    require("scripts/package_windows_distribution.ps1", 'Join-Path $PortableStage "README-PORTABLE.txt"')
 
-    require("scripts/test_windows_installer_smoke.ps1", 'Start-Process -FilePath $FilePath')
+    require("scripts/test_windows_installer_smoke.ps1", 'ValidateSet("/CurrentUser", "/AllUsers")')
     require("scripts/test_windows_installer_smoke.ps1", 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*')
-    require("scripts/test_windows_installer_smoke.ps1", "Normalize-RegistryPath")
-    require("scripts/test_windows_installer_smoke.ps1", ".Trim([char]34)")
-    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "turkuazvm-desktop.exe"')
-    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "bin/turkuazvm-engine.exe"')
-    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "bin/turkuazvm-display.exe"')
-    require("scripts/test_windows_installer_smoke.ps1", 'Join-Path $InstallRoot "config/turkuazvm.yml"')
-    require("scripts/test_windows_installer_smoke.ps1", 'Invoke-ProcessChecked -FilePath $Uninstaller -ArgumentList @("/S")')
+    require("scripts/test_windows_installer_smoke.ps1", 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*')
+    require("scripts/test_windows_installer_smoke.ps1", 'ModeArgument "/CurrentUser"')
+    require("scripts/test_windows_installer_smoke.ps1", 'ModeArgument "/AllUsers"')
+    require("scripts/test_windows_installer_smoke.ps1", 'Start-Process -FilePath $InstalledExe -PassThru')
+    require("scripts/test_windows_installer_smoke.ps1", 'Wait-FileCreated -Path $RuntimeConfigPath -Process $DesktopProcess')
+    require("scripts/test_windows_installer_smoke.ps1", 'UNINSTALL_REMOVED_USER_RUNTIME_CONFIG')
+    require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_INSTALL_MODE_SMOKE_${ExpectedScope}=PASS')
     require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_INSTALLER_SMOKE=PASS')
+    require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_RUNTIME_DATA_ROOT_SMOKE=PASS')
+    require("scripts/test_windows_installer_smoke.ps1", 'WINDOWS_DUAL_INSTALL_MODE_SMOKE=PASS')
 
-    require("apps/desktop/src-tauri/src/main.rs", "select_packaged_working_directory();")
+    require("apps/desktop/src-tauri/src/main.rs", "select_packaged_working_directory() -> Result<(), String>")
     require("apps/desktop/src-tauri/src/main.rs", "env::current_exe()")
     require("apps/desktop/src-tauri/src/main.rs", 'const PACKAGED_CONFIG_RELATIVE_PATH: &str = "config/turkuazvm.yml";')
-    require("apps/desktop/src-tauri/src/main.rs", "env::set_current_dir(executable_directory)")
+    require("apps/desktop/src-tauri/src/main.rs", 'const PORTABLE_MARKER_FILE: &str = "README-PORTABLE.txt";')
+    require("apps/desktop/src-tauri/src/main.rs", 'const WINDOWS_LOCAL_APP_DATA_ENV: &str = "LOCALAPPDATA";')
+    require("apps/desktop/src-tauri/src/main.rs", "materialize_windows_runtime_config(executable_directory)?;")
+    require("apps/desktop/src-tauri/src/main.rs", "env::set_current_dir(&runtime_root)")
 
     require(".gitignore", "/apps/desktop/src-tauri/tauri.distribution.generated.conf.json5")
 
@@ -63,7 +69,8 @@ def main() -> None:
     require(".github/workflows/windows-distribution.yml", "@tauri-apps/cli@2")
     require(".github/workflows/windows-distribution.yml", "package_windows_distribution.ps1")
     require(".github/workflows/windows-distribution.yml", "test_windows_installer_smoke.ps1")
-    require(".github/workflows/windows-distribution.yml", "Smoke test NSIS install and uninstall")
+    require(".github/workflows/windows-distribution.yml", "test_v0415_windows_runtime_data_root_contract.py")
+    require(".github/workflows/windows-distribution.yml", "Smoke test NSIS current-user, per-machine, AppData runtime and uninstall")
     require(".github/workflows/windows-distribution.yml", "actions/upload-artifact@v4")
     require(".github/workflows/windows-distribution.yml", "gh release upload")
     require(".github/workflows/windows-distribution.yml", "refs/tags/v")

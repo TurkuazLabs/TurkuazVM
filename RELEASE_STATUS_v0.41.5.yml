@@ -1,0 +1,56 @@
+# 📄 Dosya Yolu: /turkuazvm/RELEASE_STATUS_v0.41.5.yml
+# 📌 Amac: TurkuazVM v0.41.5 Windows runtime-root ve dual installer release adayinin durumunu kaydeder
+# 📌 Modul - YAML
+# Version: 0.41.5
+# Aciklama: AppData writable runtime, dual NSIS install mode, Turkce MultiUser localization ve gercek installer smoke dogrulamalarini release metadata olarak toplar
+# Bagimli Oldugu Katman: View | Controller | Service | Repo | Tool | Config | CI/CD
+
+version: 0.41.5
+package: TurkuazVM-v0.41.5-WINDOWS-RUNTIME-DUAL-INSTALL
+package_kind: WINDOWS_RUNTIME_ROOT_DUAL_INSTALL_PATCH
+base: TurkuazVM-v0.41.4
+artifacts:
+  windows_setup: TurkuazVM-0.41.5-x64-Setup.exe
+  windows_portable: TurkuazVM-0.41.5-x64-Portable.zip
+  sha256_manifest: TurkuazVM-0.41.5-SHA256SUMS.txt
+compatibility:
+  config_schema: 22
+  download_sources_schema: 5
+  engine_api_version: 24
+  vm_manifest_schema: 6
+  guest_catalog_schema: 4
+  android_image_manifest_schema: 4
+  guest_agent_protocol_version: 2
+  breaking_change: false
+focus:
+- Installed Windows Desktop materializes writable runtime and config under LOCALAPPDATA/TurkuazVM
+- Portable mode keeps folder-local behavior through README-PORTABLE.txt marker detection
+- Installed runtime config rewrites Engine, Display, network helper and Android build script paths to installation assets
+- NSIS installMode is both: current-user and per-machine modes share the same Setup EXE
+- Real Windows smoke installs and uninstalls both /CurrentUser and /AllUsers modes
+- User runtime data is preserved after uninstall
+- Turkish MultiUser strings are supplied through a small NSIS hook without forking Tauri installer template
+constraints:
+- QEMU is not bundled in the installer and must remain available through the existing dependency/runtime layer
+preserved:
+- v0.41.4 Windows NSIS/portable distribution and release asset automation
+- v0.41.3 Windows/Linux Cargo and QEMU CI hardening
+- v0.41.2 Connection Center running-VM SSH/RDP prepare behavior
+- v0.41.1 VM workspace usability patch
+validation:
+  windows_distribution_contract_pre_bump: PASS
+  windows_current_user_install_smoke_pre_bump: PASS
+  windows_all_users_install_smoke_pre_bump: PASS
+  windows_runtime_data_root_smoke_pre_bump: PASS
+  windows_turkish_multiuser_localization_build_pre_bump: PASS
+  compiler_linux_workspace_pre_bump: PASS
+  compiler_windows_workspace_pre_bump: PASS
+  compiler_zero_error_gate_pre_bump: PASS
+  runtime_validation_pre_bump: PASS
+  host_resilience_policy_pre_bump: PASS
+  host_resilience_runtime_pre_bump: PASS
+  artifact_cache_agent_pre_bump: PASS
+  release_v0415_final_pr_ci: REQUIRED_BEFORE_MERGE
+  release_v0415_release_assets: REQUIRED_AFTER_TAG
+release_gate: FINAL_PR_CI_REQUIRED
+production_claim: false
