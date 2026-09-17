@@ -2,7 +2,7 @@
 # 📌 Amac: Uretilen TurkuazVM NSIS paketini current-user ve per-machine modlarinda gercek Windows runner uzerinde kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
 # Version: 0.41.6
-# Aciklama: /CurrentUser ve /AllUsers kurulumlarini, TurkuazLabs/TurkuazVM install-root'unu, registry scope'larini, LOCALAPPDATA runtime materialization'ini ve uninstall davranisini fail-closed test eder
+# Aciklama: Current-user Programs/TurkuazLabs/TurkuazVM ve AllUsers Program Files/TurkuazLabs/TurkuazVM koklerini, registry scope'larini, LOCALAPPDATA runtime materialization'ini ve uninstall davranisini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -20,12 +20,13 @@ if ([string]::IsNullOrWhiteSpace($ArtifactRoot)) {
 $ArtifactRoot = (Resolve-Path -LiteralPath $ArtifactRoot).Path
 
 # Installer target location and application runtime location are deliberately tested
-# as separate concepts. Installed binaries live below TurkuazLabs/TurkuazVM, while
-# writable runtime state remains under the dedicated LOCALAPPDATA/TurkuazVM root.
+# as separate concepts. Installed binaries live below the TurkuazLabs/TurkuazVM
+# brand hierarchy, while writable runtime state remains under LOCALAPPDATA/TurkuazVM.
 $WindowsLocalAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
 $WindowsProgramFiles = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
 $WindowsProgramFilesX86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
 $BrandInstallRelativePath = "TurkuazLabs\TurkuazVM"
+$CurrentUserInstallRelativePath = "Programs\$BrandInstallRelativePath"
 $OriginalLocalAppData = $env:LOCALAPPDATA
 $SmokeLocalAppData = Join-Path ([System.IO.Path]::GetTempPath()) ("TurkuazVM-installer-smoke-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $SmokeLocalAppData -Force | Out-Null
@@ -205,7 +206,7 @@ function Assert-InstallRootScope {
         if ([string]::IsNullOrWhiteSpace($WindowsLocalAppData)) {
             throw "WINDOWS_LOCALAPPDATA_KNOWN_FOLDER_MISSING"
         }
-        $ExpectedRoot = Normalize-FullPath -Path (Join-Path $WindowsLocalAppData $BrandInstallRelativePath)
+        $ExpectedRoot = Normalize-FullPath -Path (Join-Path $WindowsLocalAppData $CurrentUserInstallRelativePath)
         if (-not $NormalizedInstallRoot.Equals($ExpectedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
             throw "CURRENT_USER_INSTALL_ROOT_MISMATCH: expected=$ExpectedRoot actual=$NormalizedInstallRoot"
         }
