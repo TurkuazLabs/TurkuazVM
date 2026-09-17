@@ -25,6 +25,7 @@ $TauriCliVersion = "2.11.4"
 $TauriNsisTemplateUrl = "https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v$TauriCliVersion/crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi"
 $TauriNsisTemplateBlobSha = "d372e3c391770cf231db974422a1e4f8adaac3a6"
 $BrandInstallSubdirectory = "TurkuazLabs\TurkuazVM"
+$CurrentUserInstallSubdirectory = "Programs\$BrandInstallSubdirectory"
 
 function Invoke-NativeChecked {
     param(
@@ -128,7 +129,7 @@ function New-BrandedNsisTemplate {
     $Template = Replace-RequiredLiteral -Content $Template -OldValue '          StrCpy $INSTDIR "$PROGRAMFILES64\${PRODUCTNAME}"' -NewValue '          StrCpy $INSTDIR "$PROGRAMFILES64\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 2
     $Template = Replace-RequiredLiteral -Content $Template -OldValue '          StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCTNAME}"' -NewValue '          StrCpy $INSTDIR "$PROGRAMFILES\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
     $Template = Replace-RequiredLiteral -Content $Template -OldValue '        StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCTNAME}"' -NewValue '        StrCpy $INSTDIR "$PROGRAMFILES\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
-    $Template = Replace-RequiredLiteral -Content $Template -OldValue '      StrCpy $INSTDIR "$LOCALAPPDATA\${PRODUCTNAME}"' -NewValue '      StrCpy $INSTDIR "$LOCALAPPDATA\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
+    $Template = Replace-RequiredLiteral -Content $Template -OldValue '      StrCpy $INSTDIR "$LOCALAPPDATA\${PRODUCTNAME}"' -NewValue '      StrCpy $INSTDIR "$LOCALAPPDATA\Programs\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
 
     $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText($GeneratedNsisTemplate, $Template, $Utf8NoBom)
@@ -137,7 +138,7 @@ function New-BrandedNsisTemplate {
         '!define MULTIUSER_INSTALLMODE_INSTDIR "TurkuazLabs\${PRODUCTNAME}"',
         'StrCpy $INSTDIR "$PROGRAMFILES64\TurkuazLabs\${PRODUCTNAME}"',
         'StrCpy $INSTDIR "$PROGRAMFILES\TurkuazLabs\${PRODUCTNAME}"',
-        'StrCpy $INSTDIR "$LOCALAPPDATA\TurkuazLabs\${PRODUCTNAME}"'
+        'StrCpy $INSTDIR "$LOCALAPPDATA\Programs\TurkuazLabs\${PRODUCTNAME}"'
     )) {
         if (-not $Template.Contains($Required)) {
             throw "BRANDED_NSIS_TEMPLATE_MISSING: $Required"
@@ -147,7 +148,8 @@ function New-BrandedNsisTemplate {
 
 $Version = Get-WorkspaceVersion
 Write-Host "TurkuazVM Windows distribution build v$Version"
-Write-Host "Install root contract: $BrandInstallSubdirectory"
+Write-Host "All-users install root contract: $BrandInstallSubdirectory"
+Write-Host "Current-user install root contract: $CurrentUserInstallSubdirectory"
 
 Reset-Directory -Path $StageRoot
 Reset-Directory -Path $OutputRoot
@@ -291,6 +293,7 @@ Get-ChildItem -LiteralPath $OutputRoot -File | ForEach-Object {
 
 Write-Output "WINDOWS_DISTRIBUTION_VERSION=$Version"
 Write-Output "WINDOWS_DISTRIBUTION_INSTALL_SUBDIRECTORY=$BrandInstallSubdirectory"
+Write-Output "WINDOWS_DISTRIBUTION_CURRENT_USER_INSTALL_SUBDIRECTORY=$CurrentUserInstallSubdirectory"
 Write-Output "WINDOWS_DISTRIBUTION_SETUP=$SetupPath"
 Write-Output "WINDOWS_DISTRIBUTION_PORTABLE=$PortablePath"
 Write-Output "WINDOWS_DISTRIBUTION_HASHES=$HashPath"
