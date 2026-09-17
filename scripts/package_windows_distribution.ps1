@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/package_windows_distribution.ps1
 # 📌 Amac: TurkuazVM Windows NSIS installer ve portable ZIP dagitim paketlerini uretir
 # 📌 Modul - PowerShell Tool
-# Version: 0.41.4
-# Aciklama: Engine/Display release binarylerini stage eder, runtime config yollarini dagitim icin duzeltir, gecici Tauri resource config ile NSIS ve portable paket olusturur
+# Version: 0.41.6
+# Aciklama: Tauri 2.11.4 NSIS template'ini blob SHA ile dogrulayip TurkuazLabs/TurkuazVM install-root patchini uygular; Engine/Display stage, NSIS ve portable paketleri uretir
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -17,8 +17,14 @@ $DesktopRoot = Join-Path $Root "apps/desktop"
 $TauriRoot = Join-Path $DesktopRoot "src-tauri"
 $StageRoot = Join-Path $TauriRoot "distribution/windows/stage"
 $GeneratedTauriConfig = Join-Path $TauriRoot "tauri.distribution.generated.conf.json5"
+$GeneratedNsisTemplate = Join-Path $TauriRoot "windows/installer.generated.nsi"
 $TargetRelease = Join-Path $Root "target/release"
 $OutputRoot = Join-Path $Root "artifacts/distribution/windows"
+
+$TauriCliVersion = "2.11.4"
+$TauriNsisTemplateUrl = "https://raw.githubusercontent.com/tauri-apps/tauri/tauri-cli-v$TauriCliVersion/crates/tauri-bundler/src/bundle/windows/nsis/installer.nsi"
+$TauriNsisTemplateBlobSha = "d372e3c391770cf231db974422a1e4f8adaac3a6"
+$BrandInstallSubdirectory = "TurkuazLabs\TurkuazVM"
 
 function Invoke-NativeChecked {
     param(
@@ -64,13 +70,89 @@ function Reset-Directory {
     New-Item -ItemType Directory -Path $Path -Force | Out-Null
 }
 
+function Get-GitBlobSha1 {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $Bytes = [System.IO.File]::ReadAllBytes($Path)
+    $Header = [System.Text.Encoding]::ASCII.GetBytes("blob $($Bytes.Length)`0")
+    $Payload = New-Object byte[] ($Header.Length + $Bytes.Length)
+    [System.Buffer]::BlockCopy($Header, 0, $Payload, 0, $Header.Length)
+    [System.Buffer]::BlockCopy($Bytes, 0, $Payload, $Header.Length, $Bytes.Length)
+
+    $Sha1 = [System.Security.Cryptography.SHA1]::Create()
+    try {
+        return -join ($Sha1.ComputeHash($Payload) | ForEach-Object { $_.ToString("x2") })
+    }
+    finally {
+        $Sha1.Dispose()
+    }
+}
+
+function Replace-RequiredLiteral {
+    param(
+        [Parameter(Mandatory = $true)][string]$Content,
+        [Parameter(Mandatory = $true)][string]$OldValue,
+        [Parameter(Mandatory = $true)][string]$NewValue,
+        [Parameter(Mandatory = $true)][int]$ExpectedCount
+    )
+
+    $Count = 0
+    $Offset = 0
+    while ($true) {
+        $Index = $Content.IndexOf($OldValue, $Offset, [System.StringComparison]::Ordinal)
+        if ($Index -lt 0) {
+            break
+        }
+        $Count++
+        $Offset = $Index + $OldValue.Length
+    }
+
+    if ($Count -ne $ExpectedCount) {
+        throw "NSIS_TEMPLATE_PATCH_COUNT_MISMATCH: expected=$ExpectedCount actual=$Count value=$OldValue"
+    }
+    return $Content.Replace($OldValue, $NewValue)
+}
+
+function New-BrandedNsisTemplate {
+    New-Item -ItemType Directory -Path (Split-Path -Parent $GeneratedNsisTemplate) -Force | Out-Null
+    Invoke-WebRequest -Uri $TauriNsisTemplateUrl -OutFile $GeneratedNsisTemplate -TimeoutSec 60
+
+    $ActualBlobSha = Get-GitBlobSha1 -Path $GeneratedNsisTemplate
+    if ($ActualBlobSha -ne $TauriNsisTemplateBlobSha) {
+        throw "TAURI_NSIS_TEMPLATE_BLOB_SHA_MISMATCH: expected=$TauriNsisTemplateBlobSha actual=$ActualBlobSha"
+    }
+
+    $Template = [System.IO.File]::ReadAllText($GeneratedNsisTemplate)
+    $Template = Replace-RequiredLiteral -Content $Template -OldValue '!define PLACEHOLDER_INSTALL_DIR "placeholder\${PRODUCTNAME}"' -NewValue '!define PLACEHOLDER_INSTALL_DIR "placeholder\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
+    $Template = Replace-RequiredLiteral -Content $Template -OldValue '  !define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCTNAME}"' -NewValue '  !define MULTIUSER_INSTALLMODE_INSTDIR "TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
+    $Template = Replace-RequiredLiteral -Content $Template -OldValue '          StrCpy $INSTDIR "$PROGRAMFILES64\${PRODUCTNAME}"' -NewValue '          StrCpy $INSTDIR "$PROGRAMFILES64\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 2
+    $Template = Replace-RequiredLiteral -Content $Template -OldValue '          StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCTNAME}"' -NewValue '          StrCpy $INSTDIR "$PROGRAMFILES\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
+    $Template = Replace-RequiredLiteral -Content $Template -OldValue '        StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCTNAME}"' -NewValue '        StrCpy $INSTDIR "$PROGRAMFILES\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
+    $Template = Replace-RequiredLiteral -Content $Template -OldValue '      StrCpy $INSTDIR "$LOCALAPPDATA\${PRODUCTNAME}"' -NewValue '      StrCpy $INSTDIR "$LOCALAPPDATA\TurkuazLabs\${PRODUCTNAME}"' -ExpectedCount 1
+
+    $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($GeneratedNsisTemplate, $Template, $Utf8NoBom)
+
+    foreach ($Required in @(
+        '!define MULTIUSER_INSTALLMODE_INSTDIR "TurkuazLabs\${PRODUCTNAME}"',
+        'StrCpy $INSTDIR "$PROGRAMFILES64\TurkuazLabs\${PRODUCTNAME}"',
+        'StrCpy $INSTDIR "$PROGRAMFILES\TurkuazLabs\${PRODUCTNAME}"',
+        'StrCpy $INSTDIR "$LOCALAPPDATA\TurkuazLabs\${PRODUCTNAME}"'
+    )) {
+        if (-not $Template.Contains($Required)) {
+            throw "BRANDED_NSIS_TEMPLATE_MISSING: $Required"
+        }
+    }
+}
+
 $Version = Get-WorkspaceVersion
 Write-Host "TurkuazVM Windows distribution build v$Version"
+Write-Host "Install root contract: $BrandInstallSubdirectory"
 
 Reset-Directory -Path $StageRoot
 Reset-Directory -Path $OutputRoot
 
-Write-Host "[1/6] Engine ve Display release binaryleri derleniyor..."
+Write-Host "[1/7] Engine ve Display release binaryleri derleniyor..."
 Invoke-NativeChecked -FilePath "cargo" -Arguments @(
     "build", "--release",
     "-p", "turkuazvm-engine",
@@ -85,7 +167,7 @@ foreach ($Required in @($EngineExe, $DisplayExe)) {
     }
 }
 
-Write-Host "[2/6] Runtime stage hazirlaniyor..."
+Write-Host "[2/7] Runtime stage hazirlaniyor..."
 $StageBin = Join-Path $StageRoot "bin"
 $StageConfig = Join-Path $StageRoot "config"
 $StageScripts = Join-Path $StageRoot "scripts"
@@ -119,18 +201,26 @@ if ((Get-Content -LiteralPath $RuntimeConfigPath -Raw) -match 'target/debug/turk
     throw "DISTRIBUTION_CONFIG_STILL_REFERENCES_DEBUG_BINARY"
 }
 
+Write-Host "[3/7] Tauri NSIS template'i dogrulaniyor ve TurkuazLabs install-root patchi uygulanıyor..."
+New-BrandedNsisTemplate
+
 $GeneratedTauriConfigContent = @'
 {
   "bundle": {
     "resources": {
       "distribution/windows/stage/": ""
+    },
+    "windows": {
+      "nsis": {
+        "template": "windows/installer.generated.nsi"
+      }
     }
   }
 }
 '@
 Set-Content -LiteralPath $GeneratedTauriConfig -Value $GeneratedTauriConfigContent -Encoding utf8
 
-Write-Host "[3/6] Tauri NSIS installer derleniyor..."
+Write-Host "[4/7] Tauri NSIS installer derleniyor..."
 try {
     Invoke-NativeChecked -FilePath "tauri" -Arguments @(
         "build",
@@ -139,8 +229,10 @@ try {
     ) -WorkingDirectory $DesktopRoot
 }
 finally {
-    if (Test-Path -LiteralPath $GeneratedTauriConfig -PathType Leaf) {
-        Remove-Item -LiteralPath $GeneratedTauriConfig -Force
+    foreach ($GeneratedPath in @($GeneratedTauriConfig, $GeneratedNsisTemplate)) {
+        if (Test-Path -LiteralPath $GeneratedPath -PathType Leaf) {
+            Remove-Item -LiteralPath $GeneratedPath -Force
+        }
     }
 }
 
@@ -162,7 +254,7 @@ $SetupName = "TurkuazVM-$Version-x64-Setup.exe"
 $SetupPath = Join-Path $OutputRoot $SetupName
 Copy-Item -LiteralPath $SetupSource.FullName -Destination $SetupPath -Force
 
-Write-Host "[4/6] Portable paket olusturuluyor..."
+Write-Host "[5/7] Portable paket olusturuluyor..."
 $PortableStage = Join-Path $OutputRoot "portable-stage"
 Reset-Directory -Path $PortableStage
 Copy-Item -LiteralPath $DesktopExe -Destination (Join-Path $PortableStage "TurkuazVM.exe")
@@ -183,7 +275,7 @@ $PortablePath = Join-Path $OutputRoot $PortableName
 Compress-Archive -Path (Join-Path $PortableStage "*") -DestinationPath $PortablePath -CompressionLevel Optimal -Force
 Remove-Item -LiteralPath $PortableStage -Recurse -Force
 
-Write-Host "[5/6] SHA-256 manifest olusturuluyor..."
+Write-Host "[6/7] SHA-256 manifest olusturuluyor..."
 $HashName = "TurkuazVM-$Version-SHA256SUMS.txt"
 $HashPath = Join-Path $OutputRoot $HashName
 $HashLines = foreach ($Artifact in @($SetupPath, $PortablePath)) {
@@ -192,12 +284,13 @@ $HashLines = foreach ($Artifact in @($SetupPath, $PortablePath)) {
 }
 Set-Content -LiteralPath $HashPath -Value $HashLines -Encoding ascii
 
-Write-Host "[6/6] Dagitim paketi hazir."
+Write-Host "[7/7] Dagitim paketi hazir."
 Get-ChildItem -LiteralPath $OutputRoot -File | ForEach-Object {
     Write-Host ("  {0} ({1:N0} bytes)" -f $_.Name, $_.Length)
 }
 
 Write-Output "WINDOWS_DISTRIBUTION_VERSION=$Version"
+Write-Output "WINDOWS_DISTRIBUTION_INSTALL_SUBDIRECTORY=$BrandInstallSubdirectory"
 Write-Output "WINDOWS_DISTRIBUTION_SETUP=$SetupPath"
 Write-Output "WINDOWS_DISTRIBUTION_PORTABLE=$PortablePath"
 Write-Output "WINDOWS_DISTRIBUTION_HASHES=$HashPath"
