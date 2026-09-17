@@ -36,7 +36,7 @@ def main() -> None:
     require(package, '$TauriNsisTemplateBlobSha = "d372e3c391770cf231db974422a1e4f8adaac3a6"')
     require(package, "Get-GitBlobSha1")
     require(package, "TAURI_NSIS_TEMPLATE_BLOB_SHA_MISMATCH")
-    require(package, '!define MULTIUSER_INSTALLMODE_INSTDIR \\"TurkuazLabs\\${PRODUCTNAME}\\"')
+    require(package, 'MULTIUSER_INSTALLMODE_INSTDIR "TurkuazLabs\\${PRODUCTNAME}"')
     require(package, '$PROGRAMFILES64\\TurkuazLabs\\${PRODUCTNAME}')
     require(package, '$PROGRAMFILES\\TurkuazLabs\\${PRODUCTNAME}')
     require(package, '$LOCALAPPDATA\\TurkuazLabs\\${PRODUCTNAME}')
