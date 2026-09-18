@@ -20,7 +20,7 @@ downloads:
 
 storage:
   data_root: ./data
-  image_root: ./data
+  image_root: ./data/machines
   default_disk:
     format: qcow2
     bus: virtio
