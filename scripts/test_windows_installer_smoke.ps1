@@ -27,6 +27,11 @@ $WindowsProgramFiles = [Environment]::GetFolderPath([Environment+SpecialFolder]:
 $WindowsProgramFilesX86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
 $BrandInstallRelativePath = "TurkuazLabs\TurkuazVM"
 $CurrentUserInstallRelativePath = "Programs\$BrandInstallRelativePath"
+$UserDataRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("TurkuazVM-user-data-smoke-" + [guid]::NewGuid().ToString("N"))
+$env:TURKUAZVM_USER_DATA_ROOT = $UserDataRoot
+$ExpectedVmRoot = Join-Path $UserDataRoot "VMs"
+$ExpectedIsoRoot = Join-Path $UserDataRoot "ISOs"
+$ExpectedAndroidImageRoot = Join-Path $UserDataRoot "Images/Android"
 $OriginalLocalAppData = $env:LOCALAPPDATA
 $SmokeLocalAppData = Join-Path ([System.IO.Path]::GetTempPath()) ("TurkuazVM-installer-smoke-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $SmokeLocalAppData -Force | Out-Null
@@ -281,8 +286,23 @@ function Assert-MaterializedRuntime {
                 throw "RUNTIME_CONFIG_ABSOLUTE_ASSET_PATH_MISSING: $Expected"
             }
         }
-        if ($RuntimeConfig -notmatch 'data_root:\s*\./data') {
-            throw "RUNTIME_CONFIG_DATA_ROOT_NOT_LOCALAPPDATA_RELATIVE"
+        $RuntimeSources = Get-Content -LiteralPath $RuntimeDownloadSourcesPath -Raw
+        $ExpectedVmYaml = (Normalize-FullPath -Path $ExpectedVmRoot).Replace('\\', '/')
+        $ExpectedIsoYaml = (Normalize-FullPath -Path $ExpectedIsoRoot).Replace('\\', '/')
+        $ExpectedAndroidImageYaml = (Normalize-FullPath -Path $ExpectedAndroidImageRoot).Replace('\\', '/')
+        foreach ($RequiredDirectory in @($UserDataRoot, $ExpectedVmRoot, $ExpectedIsoRoot, $ExpectedAndroidImageRoot)) {
+            if (-not (Test-Path -LiteralPath $RequiredDirectory -PathType Container)) {
+                throw "USER_DATA_DIRECTORY_MISSING: $RequiredDirectory"
+            }
+        }
+        if (-not $RuntimeConfig.Contains("data_root: `"$ExpectedVmYaml`"")) {
+            throw "USER_DATA_VM_ROOT_NOT_MATERIALIZED: expected=$ExpectedVmYaml"
+        }
+        if (-not $RuntimeSources.Contains("installer_media: `"$ExpectedIsoYaml`"")) {
+            throw "USER_DATA_ISO_ROOT_NOT_MATERIALIZED: expected=$ExpectedIsoYaml"
+        }
+        if (-not $RuntimeSources.Contains("android_images: `"$ExpectedAndroidImageYaml`"")) {
+            throw "USER_DATA_ANDROID_IMAGE_ROOT_NOT_MATERIALIZED: expected=$ExpectedAndroidImageYaml"
         }
         if ($RuntimeConfig -match 'target/debug/turkuazvm-(engine|display)') {
             throw "RUNTIME_CONFIG_REFERENCES_DEBUG_BINARY"
@@ -378,6 +398,7 @@ try {
     Write-Output "WINDOWS_RUNTIME_DATA_ROOT_SMOKE=PASS"
     Write-Output "WINDOWS_DUAL_INSTALL_MODE_SMOKE=PASS"
     Write-Output "WINDOWS_TURKUAZLABS_INSTALL_ROOT_SMOKE=PASS"
+    Write-Output "WINDOWS_USER_DATA_ROOT_SMOKE=PASS"
 }
 finally {
     Stop-TurkuazRuntimeProcesses -DesktopProcess $null
@@ -385,5 +406,9 @@ finally {
     if (Test-Path -LiteralPath $SmokeLocalAppData) {
         Remove-Item -LiteralPath $SmokeLocalAppData -Recurse -Force -ErrorAction SilentlyContinue
     }
+    if (Test-Path -LiteralPath $UserDataRoot) {
+        Remove-Item -LiteralPath $UserDataRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Remove-Item Env:TURKUAZVM_USER_DATA_ROOT -ErrorAction SilentlyContinue
     $env:LOCALAPPDATA = $OriginalLocalAppData
 }
