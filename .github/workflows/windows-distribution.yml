@@ -20,6 +20,7 @@ on:
       - "scripts/tests/test_windows_distribution_contract.py"
       - "scripts/tests/test_v0415_windows_runtime_data_root_contract.py"
       - "scripts/tests/test_v0416_turkuazlabs_install_root_contract.py"
+      - "scripts/tests/test_v0416_windows_user_data_root_contract.py"
       - ".github/workflows/windows-distribution.yml"
       - "Cargo.toml"
       - "Cargo.lock"
@@ -67,7 +68,8 @@ jobs:
           $ContractTests = @(
             "scripts/tests/test_windows_distribution_contract.py",
             "scripts/tests/test_v0415_windows_runtime_data_root_contract.py",
-            "scripts/tests/test_v0416_turkuazlabs_install_root_contract.py"
+            "scripts/tests/test_v0416_turkuazlabs_install_root_contract.py",
+            "scripts/tests/test_v0416_windows_user_data_root_contract.py"
           )
           foreach ($Test in $ContractTests) {
             python $Test
