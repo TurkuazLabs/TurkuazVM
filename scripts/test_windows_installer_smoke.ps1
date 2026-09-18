@@ -2,7 +2,7 @@
 # 📌 Amac: Uretilen TurkuazVM NSIS paketini current-user ve per-machine modlarinda gercek Windows runner uzerinde kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
 # Version: 0.41.6
-# Aciklama: Current-user Programs/TurkuazLabs/TurkuazVM ve AllUsers Program Files/TurkuazLabs/TurkuazVM koklerini, registry scope'larini, LOCALAPPDATA runtime materialization'ini ve uninstall davranisini fail-closed test eder
+# Aciklama: Installer koklerini, LOCALAPPDATA metadata/runtime ile USERPROFILE VM/ISO/Android image koklerini, registry scope ve uninstall davranisini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -287,16 +287,19 @@ function Assert-MaterializedRuntime {
             }
         }
         $RuntimeSources = Get-Content -LiteralPath $RuntimeDownloadSourcesPath -Raw
-        $ExpectedVmYaml = (Normalize-FullPath -Path $ExpectedVmRoot).Replace('\\', '/')
-        $ExpectedIsoYaml = (Normalize-FullPath -Path $ExpectedIsoRoot).Replace('\\', '/')
-        $ExpectedAndroidImageYaml = (Normalize-FullPath -Path $ExpectedAndroidImageRoot).Replace('\\', '/')
+        $ExpectedVmYaml = (Normalize-FullPath -Path $ExpectedVmRoot).Replace('\', '/')
+        $ExpectedIsoYaml = (Normalize-FullPath -Path $ExpectedIsoRoot).Replace('\', '/')
+        $ExpectedAndroidImageYaml = (Normalize-FullPath -Path $ExpectedAndroidImageRoot).Replace('\', '/')
         foreach ($RequiredDirectory in @($UserDataRoot, $ExpectedVmRoot, $ExpectedIsoRoot, $ExpectedAndroidImageRoot)) {
             if (-not (Test-Path -LiteralPath $RequiredDirectory -PathType Container)) {
                 throw "USER_DATA_DIRECTORY_MISSING: $RequiredDirectory"
             }
         }
-        if (-not $RuntimeConfig.Contains("data_root: `"$ExpectedVmYaml`"")) {
-            throw "USER_DATA_VM_ROOT_NOT_MATERIALIZED: expected=$ExpectedVmYaml"
+        if ($RuntimeConfig -notmatch 'data_root:\s*\./data') {
+            throw "RUNTIME_METADATA_DATA_ROOT_NOT_LOCALAPPDATA_RELATIVE"
+        }
+        if (-not $RuntimeConfig.Contains("image_root: `"$ExpectedVmYaml`"")) {
+            throw "USER_DATA_VM_IMAGE_ROOT_NOT_MATERIALIZED: expected=$ExpectedVmYaml"
         }
         if (-not $RuntimeSources.Contains("installer_media: `"$ExpectedIsoYaml`"")) {
             throw "USER_DATA_ISO_ROOT_NOT_MATERIALIZED: expected=$ExpectedIsoYaml"
