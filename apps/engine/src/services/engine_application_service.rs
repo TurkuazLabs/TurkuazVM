@@ -280,6 +280,7 @@ impl EngineApplicationService {
             repository.clone(),
             LocalGuestMediaTool::new(LocalGuestMediaSettings {
                 data_root: config.data_root.clone(),
+                image_root: config.image_root.clone(),
             }),
             UefiFirmwareTool::new(UefiFirmwareSettings {
                 data_root: config.data_root.clone(),
