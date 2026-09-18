@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/apps/engine/src/config/engine_config.rs
 // # 📌 Amac: Merkezi turkuazvm.yml dosyasini Engine runtime ve remote access ayarlarina donusturur
 // # 📌 Modul - Rust
-// # Version: 0.40.14
-// # Aciklama: Schema 22; Android SDK Emulator console port politikasini configten runtime katmanina kayipsiz tasir ve mevcut source resolver ayarlarini korur
+// # Version: 0.41.6
+// # Aciklama: Schema 22; metadata data_root ile buyuk disk image_root kokunu ayirir, eksik image_root icin legacy data_root fallbackini korur
 // # Bagimli Oldugu Katman: Service | Tool
 
 use std::collections::BTreeMap;
@@ -47,6 +47,7 @@ pub struct EngineConfig {
     pub api_auth_token: Option<String>,
     pub api_tls: Option<TlsServerSettings>,
     pub data_root: PathBuf,
+    pub image_root: PathBuf,
     pub storage_policy: StorageEnginePolicy,
     pub download_http: DownloadHttpEngineConfig,
     pub artifact_cache: ArtifactCacheEngineConfig,
@@ -433,6 +434,8 @@ struct HostConfig {
 #[derive(Debug, Deserialize)]
 struct StorageConfig {
     data_root: PathBuf,
+    #[serde(default)]
+    image_root: Option<PathBuf>,
     default_disk: DefaultDiskConfig,
     portable_image: PortableImageConfig,
 }
@@ -736,6 +739,13 @@ impl EngineConfig {
         }
 
         let data_root = resolve_path(&project_root, config.storage.data_root);
+        let image_root = config
+            .storage
+            .image_root
+            .clone()
+            .filter(|path| !path.as_os_str().is_empty())
+            .map(|path| resolve_path(&project_root, path))
+            .unwrap_or_else(|| data_root.clone());
         let artifact_cache_root = resolve_path(
             &project_root,
             required_path(&download_sources.paths.artifact_cache, "download-sources.paths.artifact_cache")?,
@@ -1040,6 +1050,7 @@ impl EngineConfig {
             api_auth_token,
             api_tls,
             data_root: data_root.clone(),
+            image_root: image_root.clone(),
             storage_policy: StorageEnginePolicy {
                 default_disk_format,
                 default_disk_bus,
@@ -1088,6 +1099,7 @@ impl EngineConfig {
                 rfb_display_min: config.runtime.rfb_display_min,
                 rfb_display_max: config.runtime.rfb_display_max,
                 data_root: data_root.clone(),
+                image_root: image_root.clone(),
             },
             runtime_maintenance_interval: Duration::from_millis(config.runtime.maintenance_interval_ms),
             runtime_recovery: RuntimeRecoveryEngineConfig {
