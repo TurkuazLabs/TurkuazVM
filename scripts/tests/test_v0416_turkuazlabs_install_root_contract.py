@@ -40,7 +40,7 @@ def main() -> None:
     require(package, 'MULTIUSER_INSTALLMODE_INSTDIR "TurkuazLabs\\${PRODUCTNAME}"')
     require(package, '$PROGRAMFILES64\\TurkuazLabs\\${PRODUCTNAME}')
     require(package, '$PROGRAMFILES\\TurkuazLabs\\${PRODUCTNAME}')
-    require(package, '$LOCALAPPDATA\\TurkuazLabs\\${PRODUCTNAME}')
+    require(package, '$LOCALAPPDATA\\Programs\\TurkuazLabs\\${PRODUCTNAME}')
     require(package, '"template": "windows/installer.generated.nsi"')
     require(package, "Remove-Item -LiteralPath $GeneratedPath -Force")
 
