@@ -12,7 +12,7 @@ v0.41.6, Windows installer icin marka klasor hiyerarsisini duzeltir. Kurulu uygu
 ## Windows Install Root
 
 - System-wide kurulum varsayilani: `C:\Program Files\TurkuazLabs\TurkuazVM`.
-- Current-user kurulum varsayilani: `%LOCALAPPDATA%\TurkuazLabs\TurkuazVM`.
+- Current-user kurulum varsayilani: `%LOCALAPPDATA%\Programs\TurkuazLabs\TurkuazVM`.
 - Tek Setup EXE icindeki `/CurrentUser` ve `/AllUsers` modlari korunur.
 - Registry scope ve uninstall davranisi degismez.
 
@@ -22,7 +22,8 @@ v0.41.6, Windows installer icin marka klasor hiyerarsisini duzeltir. Kurulu uygu
 - Buyuk kullanici verileri varsayilan olarak `%USERPROFILE%\TurkuazVM` altinda toplanir.
 - Yeni qcow2/raw diskler ve VM'ye baglanan installer ISO kopyalari: `%USERPROFILE%\TurkuazVM\VMs\<vm-id>\...`.
 - Indirilen installer ISO'lari: `%USERPROFILE%\TurkuazVM\ISOs`.
-- Android virtual/system image ciktilari: `%USERPROFILE%\TurkuazVM\Images\Android`.\n- VM-ozel Android private disk ve AVD userdata: `%USERPROFILE%\TurkuazVM\VMs\<vm-id>\runtime\...`.
+- Android virtual/system image ciktilari: `%USERPROFILE%\TurkuazVM\Images\Android`.
+- VM-ozel Android private disk ve AVD userdata: `%USERPROFILE%\TurkuazVM\VMs\<vm-id>\runtime\...`.
 - Test ve ileri seviye kurulumlar icin `TURKUAZVM_USER_DATA_ROOT` override'i desteklenir; normal kullanici icin ayar gerektirmez.
 - Portable paket klasor-ici davranisini korur.
 
@@ -37,7 +38,7 @@ v0.41.6, Windows installer icin marka klasor hiyerarsisini duzeltir. Kurulu uygu
 ## CI / Dogrulama
 
 - Statik v0.41.6 install-root kontrati eklendi.
-- Gercek Windows smoke testi current-user kurulumunun tam olarak `%LOCALAPPDATA%\TurkuazLabs\TurkuazVM` altina kuruldugunu kontrol eder.
+- Gercek Windows smoke testi current-user kurulumunun tam olarak `%LOCALAPPDATA%\Programs\TurkuazLabs\TurkuazVM` altina kuruldugunu kontrol eder.
 - Gercek Windows smoke testi all-users kurulumunun tam olarak Program Files altindaki `TurkuazLabs\TurkuazVM` klasorune kuruldugunu kontrol eder.
 - AppData config/runtime materialization, USERPROFILE/TurkuazVM VMs/ISOs/Images kokleri ve uninstall sonrasi kullanici verisinin korunmasi birlikte test edilir.
 
