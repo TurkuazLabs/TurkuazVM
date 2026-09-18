@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/crates/guest/src/tools/android_runtime_media_tool.rs
 // # 📌 Amac: Kayitli Android image bundle'ini runtime tipine gore QEMU veya Android SDK Emulator medyasina hazirlar
 // # 📌 Modul - Rust
-// # Version: 0.40.14
-// # Aciklama: Cuttlefish akisini korur; SDK Emulator AVD planinda console port dogrulamasini merkezi provider configinden uygular
+// # Version: 0.41.6
+// # Aciklama: VM-ozel Android private disk ve AVD userdata'yi vm_root altinda tutar; mevcut data_root runtime klasoru varsa legacy fallback ile kullanir
 // # Bagimli Oldugu Katman: Service | Repo | Tool
 
 use std::fs;
@@ -35,6 +35,7 @@ const QEMU_IMG_RAW: &str = "raw";
 #[derive(Debug, Clone)]
 pub struct AndroidRuntimeMediaSettings {
     pub data_root: PathBuf,
+    pub vm_root: PathBuf,
     pub image_output_root: PathBuf,
     pub qemu_img_binary: Option<PathBuf>,
     pub android_sdk_tool_root: PathBuf,
@@ -64,6 +65,23 @@ pub struct AndroidRuntimeMediaTool { settings: AndroidRuntimeMediaSettings }
 impl AndroidRuntimeMediaTool {
     pub fn new(settings: AndroidRuntimeMediaSettings) -> Self { Self { settings } }
 
+    fn vm_runtime_root(&self, vm_id: &str) -> PathBuf {
+        let primary = self.settings.vm_root.join(vm_id).join(DIR_RUNTIME);
+        if primary.exists() {
+            return primary;
+        }
+        let legacy = self
+            .settings
+            .data_root
+            .join(DIR_MACHINES)
+            .join(vm_id)
+            .join(DIR_RUNTIME);
+        if legacy.exists() {
+            return legacy;
+        }
+        primary
+    }
+
     pub fn prepare(&self, image: &AndroidImage, vm_id: &str, profile: &AndroidRuntimeProfile) -> Result<VmRuntimeMediaPlan, AndroidRuntimeMediaError> {
         match image.runtime_kind {
             AndroidImageRuntimeKind::QemuComposite => self.prepare_qemu(image, vm_id),
@@ -78,7 +96,10 @@ impl AndroidRuntimeMediaTool {
         let bootloader_path = self.artifact_path(image, bootloader);
         self.verify_artifact(&composite_path, composite)?;
         self.verify_artifact(&bootloader_path, bootloader)?;
-        let runtime_root = self.settings.data_root.join(DIR_MACHINES).join(vm_id).join(DIR_RUNTIME).join(DIR_ANDROID).join(image.id.as_str());
+        let runtime_root = self
+            .vm_runtime_root(vm_id)
+            .join(DIR_ANDROID)
+            .join(image.id.as_str());
         fs::create_dir_all(&runtime_root).map_err(|error| AndroidRuntimeMediaError::RuntimeDirectory(error.to_string()))?;
         let pflash_path = runtime_root.join(FILE_PFLASH);
         self.ensure_pflash(&bootloader_path, &pflash_path)?;
@@ -107,7 +128,10 @@ impl AndroidRuntimeMediaTool {
         let emulator_binary = self.settings.android_sdk_tool_root.join("emulator").join(if cfg!(windows) { "emulator.exe" } else { "emulator" });
         if !emulator_binary.is_file() { return Err(AndroidRuntimeMediaError::EmulatorUnavailable(emulator_binary)); }
 
-        let avd_home = self.settings.data_root.join(DIR_MACHINES).join(vm_id).join(DIR_RUNTIME).join(DIR_ANDROID_SDK).join(DIR_AVD);
+        let avd_home = self
+            .vm_runtime_root(vm_id)
+            .join(DIR_ANDROID_SDK)
+            .join(DIR_AVD);
         fs::create_dir_all(&avd_home).map_err(|error| AndroidRuntimeMediaError::AvdCreate(error.to_string()))?;
         let avd_name = format!("turkuazvm-{vm_id}");
         let avd_content = avd_home.join(format!("{avd_name}.avd"));
