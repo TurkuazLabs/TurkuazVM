@@ -2,7 +2,7 @@
 # 📌 Amac: TurkuazVM v0.41.6 GitHub release notlarini tanimlar
 # 📌 Modul - Markdown
 # Version: 0.41.6
-# Aciklama: Windows kurulum dosyalarini TurkuazLabs/TurkuazVM marka hiyerarsisine tasiyan installer patchini ozetler
+# Aciklama: Windows kurulum kokunu TurkuazLabs hiyerarsisine, buyuk VM/ISO/image verilerini USERPROFILE/TurkuazVM kokune alan patchi ozetler
 # Bagimli Oldugu Katman: Tool | View | CI/CD
 
 # TurkuazVM v0.41.6
@@ -16,10 +16,14 @@ v0.41.6, Windows installer icin marka klasor hiyerarsisini duzeltir. Kurulu uygu
 - Tek Setup EXE icindeki `/CurrentUser` ve `/AllUsers` modlari korunur.
 - Registry scope ve uninstall davranisi degismez.
 
-## Runtime Data
+## Runtime ve Kullanici Verisi
 
-- Writable runtime/config kokunun mevcut davranisi korunur: `%LOCALAPPDATA%\TurkuazVM`.
-- Bu patch kullanici verisini tasimaz veya yeniden adlandirmaz; yalniz kurulu uygulama binary/resource kokunu markali klasor hiyerarsisine alir.
+- Writable config/runtime koku `%LOCALAPPDATA%\TurkuazVM` olarak kalir.
+- Buyuk kullanici verileri varsayilan olarak `%USERPROFILE%\TurkuazVM` altinda toplanir.
+- VM storage koku: `%USERPROFILE%\TurkuazVM\VMs`.
+- Indirilen installer ISO'lari: `%USERPROFILE%\TurkuazVM\ISOs`.
+- Android virtual/system image ciktilari: `%USERPROFILE%\TurkuazVM\Images\Android`.
+- Test ve ileri seviye kurulumlar icin `TURKUAZVM_USER_DATA_ROOT` override'i desteklenir; normal kullanici icin ayar gerektirmez.
 - Portable paket klasor-ici davranisini korur.
 
 ## Installer Build Guvenilirligi
@@ -35,7 +39,7 @@ v0.41.6, Windows installer icin marka klasor hiyerarsisini duzeltir. Kurulu uygu
 - Statik v0.41.6 install-root kontrati eklendi.
 - Gercek Windows smoke testi current-user kurulumunun tam olarak `%LOCALAPPDATA%\TurkuazLabs\TurkuazVM` altina kuruldugunu kontrol eder.
 - Gercek Windows smoke testi all-users kurulumunun tam olarak Program Files altindaki `TurkuazLabs\TurkuazVM` klasorune kuruldugunu kontrol eder.
-- AppData runtime materialization ve uninstall sonrasi kullanici verisinin korunmasi tekrar test edilir.
+- AppData config/runtime materialization, USERPROFILE/TurkuazVM VMs/ISOs/Images kokleri ve uninstall sonrasi kullanici verisinin korunmasi birlikte test edilir.
 
 ## Uyumluluk
 
