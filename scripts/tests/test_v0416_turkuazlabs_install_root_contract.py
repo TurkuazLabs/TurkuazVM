@@ -50,9 +50,16 @@ def main() -> None:
     require(smoke, "ALL_USERS_INSTALL_ROOT_MISMATCH")
     require(smoke, "WINDOWS_TURKUAZLABS_INSTALL_ROOT_SMOKE=PASS")
     require(smoke, '$RuntimeRoot = Join-Path $SmokeLocalAppData "TurkuazVM"')
+    require(smoke, '$env:TURKUAZVM_USER_DATA_ROOT = $UserDataRoot')
+    require(smoke, '$ExpectedVmRoot = Join-Path $UserDataRoot "VMs"')
+    require(smoke, '$ExpectedIsoRoot = Join-Path $UserDataRoot "ISOs"')
+    require(smoke, '$ExpectedAndroidImageRoot = Join-Path $UserDataRoot "Images/Android"')
+    require(smoke, "WINDOWS_USER_DATA_ROOT_SMOKE=PASS")
 
     require(workflow, "@tauri-apps/cli@2.11.4")
     require(workflow, "test_v0416_turkuazlabs_install_root_contract.py")
+    require(workflow, "DISTRIBUTION_CONTRACT_FAILED")
+    require(workflow, "if ($LASTEXITCODE -ne 0)")
     require(workflow, "TurkuazLabs install root")
     forbid(workflow, "@tauri-apps/cli@2\n")
 
