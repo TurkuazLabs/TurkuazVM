@@ -36,6 +36,7 @@ const DEFAULT_GPU_MODE: &str = "auto";
 const DEFAULT_GPU_HOSTMEM_MIB: u64 = 1024;
 const EXPECTED_CONFIG_SCHEMA_VERSION: u16 = 22;
 const BYTES_PER_GIB: u64 = 1024 * 1024 * 1024;
+const LEGACY_MACHINE_DIRECTORY: &str = "machines";
 
 #[derive(Debug, Clone)]
 pub struct EngineConfig {
@@ -745,7 +746,7 @@ impl EngineConfig {
             .clone()
             .filter(|path| !path.as_os_str().is_empty())
             .map(|path| resolve_path(&project_root, path))
-            .unwrap_or_else(|| data_root.clone());
+            .unwrap_or_else(|| data_root.join(LEGACY_MACHINE_DIRECTORY));
         let artifact_cache_root = resolve_path(
             &project_root,
             required_path(&download_sources.paths.artifact_cache, "download-sources.paths.artifact_cache")?,
