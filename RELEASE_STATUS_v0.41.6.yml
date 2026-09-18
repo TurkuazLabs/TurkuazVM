@@ -27,10 +27,14 @@ focus:
 - Current-user Windows install root is LOCALAPPDATA/Programs/TurkuazLabs/TurkuazVM
 - Writable runtime/config root remains LOCALAPPDATA/TurkuazVM
 - Large Windows user data root defaults to USERPROFILE/TurkuazVM
-- VM storage defaults to USERPROFILE/TurkuazVM/VMs
+- New qcow2/raw disks and attached ISO copies default to USERPROFILE/TurkuazVM/VMs/<vm-id>
 - Installer ISO downloads default to USERPROFILE/TurkuazVM/ISOs
 - Android virtual/system image output defaults to USERPROFILE/TurkuazVM/Images/Android
+- VM-specific Android private disk and AVD userdata default to USERPROFILE/TurkuazVM/VMs/<vm-id>/runtime
 - TURKUAZVM_USER_DATA_ROOT can override the large user data root without changing config schema
+- Existing LOCALAPPDATA/TurkuazVM VM metadata remains in place
+- Legacy data/machines disk, attached ISO and Android runtime media paths remain readable through fallback
+- Existing runtime download-sources path choices are preserved; fresh installs receive USERPROFILE defaults
 - Tauri CLI is pinned to 2.11.4 for Windows distribution
 - Official Tauri 2.11.4 NSIS template is Git-blob-verified before install-root patching
 - Real Windows smoke asserts exact branded roots for /CurrentUser and /AllUsers
@@ -46,6 +50,7 @@ validation:
   windows_distribution_contract: REQUIRED_IN_PR
   v0415_runtime_data_root_contract: REQUIRED_IN_PR
   v0416_turkuazlabs_install_root_contract: REQUIRED_IN_PR
+  v0416_windows_user_data_root_contract: REQUIRED_IN_PR
   windows_current_user_exact_install_root_smoke: REQUIRED_IN_PR
   windows_all_users_exact_install_root_smoke: REQUIRED_IN_PR
   windows_runtime_data_root_smoke: REQUIRED_IN_PR
