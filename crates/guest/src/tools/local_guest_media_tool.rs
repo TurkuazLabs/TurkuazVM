@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/crates/guest/src/tools/local_guest_media_tool.rs
 // # 📌 Amac: Installer ISO dosyasini VM machine root altina atomik ve tekrar calistirilabilir sekilde import eder
 // # 📌 Modul - Rust
-// # Version: 0.28.0
-// # Aciklama: Ayni ISO icin no-op, farkli ISO icin backup tabanli replace ve rollback davranisiyla MediaPort contractini uygular
+// # Version: 0.41.6
+// # Aciklama: Yeni ISO kopyalarini image_root/VM altina alir; legacy data_root/machines ISO'larini fallback ile korur ve atomik replace/rollback davranisini surdurur
 // # Bagimli Oldugu Katman: Tool
 
 use std::ffi::OsStr;
@@ -23,6 +23,7 @@ const HASH_BUFFER_SIZE: usize = 1024 * 1024;
 #[derive(Debug, Clone)]
 pub struct LocalGuestMediaSettings {
     pub data_root: PathBuf,
+    pub image_root: PathBuf,
 }
 
 pub struct LocalGuestMediaTool {
@@ -34,12 +35,31 @@ impl LocalGuestMediaTool {
         Self { settings }
     }
 
-    fn target_path(&self, vm_id: &VmId, attachment: &IsoAttachment) -> PathBuf {
+    fn primary_target_path(&self, vm_id: &VmId, attachment: &IsoAttachment) -> PathBuf {
+        self.settings
+            .image_root
+            .join(vm_id.as_str())
+            .join(attachment.relative_path())
+    }
+
+    fn legacy_target_path(&self, vm_id: &VmId, attachment: &IsoAttachment) -> PathBuf {
         self.settings
             .data_root
             .join(DIR_MACHINES)
             .join(vm_id.as_str())
             .join(attachment.relative_path())
+    }
+
+    fn target_path(&self, vm_id: &VmId, attachment: &IsoAttachment) -> PathBuf {
+        let primary = self.primary_target_path(vm_id, attachment);
+        if primary.exists() {
+            return primary;
+        }
+        let legacy = self.legacy_target_path(vm_id, attachment);
+        if legacy.exists() {
+            return legacy;
+        }
+        primary
     }
 
     fn sibling_with_suffix(path: &Path, suffix: &str) -> PathBuf {
@@ -188,12 +208,16 @@ impl MediaPort for LocalGuestMediaTool {
     }
 
     fn delete_iso(&self, vm_id: &VmId, attachment: &IsoAttachment) -> Result<(), MediaError> {
-        let target = self.target_path(vm_id, attachment);
-        let backup = Self::sibling_with_suffix(&target, BACKUP_SUFFIX);
-        let temp = Self::sibling_with_suffix(&target, TEMP_SUFFIX);
-        for path in [target.as_path(), backup.as_path(), temp.as_path()] {
-            if path.exists() {
-                fs::remove_file(path).map_err(|error| MediaError::DeleteFailed(error.to_string()))?;
+        let primary = self.primary_target_path(vm_id, attachment);
+        let legacy = self.legacy_target_path(vm_id, attachment);
+        for target in [primary, legacy] {
+            let backup = Self::sibling_with_suffix(&target, BACKUP_SUFFIX);
+            let temp = Self::sibling_with_suffix(&target, TEMP_SUFFIX);
+            for path in [target.as_path(), backup.as_path(), temp.as_path()] {
+                if path.exists() {
+                    fs::remove_file(path)
+                        .map_err(|error| MediaError::DeleteFailed(error.to_string()))?;
+                }
             }
         }
         Ok(())
@@ -230,6 +254,7 @@ mod tests {
         fs::write(&source, b"iso").expect("source must be created");
         let tool = LocalGuestMediaTool::new(LocalGuestMediaSettings {
             data_root: root.clone(),
+            image_root: root.join(DIR_MACHINES),
         });
         let vm_id = VmId::parse("vm-a").expect("vm id must be valid");
         let attachment = attachment();
@@ -252,6 +277,7 @@ mod tests {
         fs::write(&source, b"same-iso").expect("source must be created");
         let tool = LocalGuestMediaTool::new(LocalGuestMediaSettings {
             data_root: root.clone(),
+            image_root: root.join(DIR_MACHINES),
         });
         let vm_id = VmId::parse("vm-a").expect("vm id must be valid");
         let attachment = attachment();
@@ -278,6 +304,7 @@ mod tests {
         fs::write(&new_source, b"new-iso").expect("new source must be created");
         let tool = LocalGuestMediaTool::new(LocalGuestMediaSettings {
             data_root: root.clone(),
+            image_root: root.join(DIR_MACHINES),
         });
         let vm_id = VmId::parse("vm-a").expect("vm id must be valid");
         let attachment = attachment();
@@ -310,6 +337,7 @@ mod tests {
         fs::write(&new_source, b"new-iso").expect("new source must be created");
         let tool = LocalGuestMediaTool::new(LocalGuestMediaSettings {
             data_root: root.clone(),
+            image_root: root.join(DIR_MACHINES),
         });
         let vm_id = VmId::parse("vm-a").expect("vm id must be valid");
         let attachment = attachment();
