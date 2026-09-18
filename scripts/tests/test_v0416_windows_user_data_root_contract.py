@@ -30,6 +30,8 @@ def main() -> None:
     qemu_builder = "crates/qemu/src/tools/qemu_command_builder.rs"
     qemu_tool = "crates/storage/src/tools/qemu_img_tool.rs"
     runtime_tool = "crates/qemu/src/tools/qemu_runtime_tool.rs"
+    guest_media = "crates/guest/src/tools/local_guest_media_tool.rs"
+    android_runtime = "crates/guest/src/tools/android_runtime_media_tool.rs"
     smoke = "scripts/test_windows_installer_smoke.ps1"
 
     require(config, "  data_root: ./data")
@@ -70,6 +72,19 @@ def main() -> None:
     require(qemu_builder, ".join(machine.id().as_str())")
     require(qemu_builder, ".join(DIR_MACHINES)")
     require(runtime_tool, "&self.settings.image_root")
+
+    require(guest_media, "pub image_root: PathBuf,")
+    require(guest_media, "fn primary_target_path")
+    require(guest_media, "fn legacy_target_path")
+    require(guest_media, ".image_root")
+    require(guest_media, ".data_root")
+    require(engine_service, "image_root: config.image_root.clone(),")
+
+    require(android_runtime, "pub vm_root: PathBuf,")
+    require(android_runtime, "fn vm_runtime_root")
+    require(android_runtime, "self.settings.vm_root.join(vm_id)")
+    require(android_runtime, ".data_root")
+    require(engine_service, "config.image_root.clone(),")
 
     require(smoke, '$env:TURKUAZVM_USER_DATA_ROOT = $UserDataRoot')
     require(smoke, '$ExpectedVmRoot = Join-Path $UserDataRoot "VMs"')
