@@ -65,7 +65,7 @@ def main() -> None:
     require(qemu_tool, "self.image_root.join(vm_id.as_str())")
     require(qemu_tool, "fn resolve_existing_image_path")
     require(qemu_tool, "self.data_machine_root(vm_id)")
-    require(qemu_tool, "self.resolve_image_target_path(target_vm_id, target)")
+    require(qemu_tool, ".resolve_image_target_path(target_vm_id, target)")
 
     require(qemu_builder, "build_arguments_with_gpu_and_image_root")
     require(qemu_builder, "image_root: &Path")
