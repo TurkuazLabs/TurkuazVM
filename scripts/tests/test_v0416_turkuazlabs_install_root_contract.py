@@ -53,7 +53,7 @@ def main() -> None:
     require(desktop_main, 'const USER_DATA_IMAGE_DIRECTORY: &str = "Images";')
     require(desktop_main, 'const USER_DATA_ANDROID_IMAGE_DIRECTORY: &str = "Android";')
     require(desktop_main, "windows_user_data_root()?")
-    require(desktop_main, '"  data_root: ./data"')
+    require(desktop_main, '"  image_root: ./data/machines"')
     require(desktop_main, '"  installer_media: ./data/installer-media"')
     require(desktop_main, '"  android_images: ./data/android-image-builds"')
 
