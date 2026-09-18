@@ -64,15 +64,23 @@ jobs:
       - name: Validate distribution contracts
         shell: pwsh
         run: |
-          python scripts/tests/test_windows_distribution_contract.py
-          python scripts/tests/test_v0415_windows_runtime_data_root_contract.py
-          python scripts/tests/test_v0416_turkuazlabs_install_root_contract.py
+          $ContractTests = @(
+            "scripts/tests/test_windows_distribution_contract.py",
+            "scripts/tests/test_v0415_windows_runtime_data_root_contract.py",
+            "scripts/tests/test_v0416_turkuazlabs_install_root_contract.py"
+          )
+          foreach ($Test in $ContractTests) {
+            python $Test
+            if ($LASTEXITCODE -ne 0) {
+              throw "DISTRIBUTION_CONTRACT_FAILED: $Test exit=$LASTEXITCODE"
+            }
+          }
 
       - name: Build NSIS and portable packages
         shell: pwsh
         run: ./scripts/package_windows_distribution.ps1
 
-      - name: Smoke test dual installer, TurkuazLabs install root, AppData runtime and uninstall
+      - name: Smoke test current-user, per-machine, AppData runtime, TurkuazLabs install root, user data root and uninstall
         shell: pwsh
         run: ./scripts/test_windows_installer_smoke.ps1
 
