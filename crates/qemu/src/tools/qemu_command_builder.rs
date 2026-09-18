@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/crates/qemu/src/tools/qemu_command_builder.rs
 // # 📌 Amac: VirtualMachine aggregate bilgisinden QEMU launch argumanlari uretir
 // # 📌 Modul - Rust
-// # Version: 0.32.0
-// # Aciklama: CPU, RAM, accelerator, QMP, display, disk ve portable QEMU User NAT dahil network argumanlarini merkezi olarak uretir
+// # Version: 0.41.6
+// # Aciklama: Metadata data_root ve buyuk disk image_root koklerini ayirir; legacy data_root disklerini boot sirasinda fallback olarak destekler
 // # Bagimli Oldugu Katman: Tool
 
 use std::net::SocketAddr;
@@ -107,6 +107,28 @@ impl QemuCommandBuilder {
         network_plan: &NetworkRuntimePlan,
         runtime_media: Option<&VmRuntimeMediaPlan>,
     ) -> Result<Vec<String>, QemuCommandBuildError> {
+        Self::build_arguments_with_gpu_and_image_root(
+            machine,
+            qmp_endpoint,
+            display_plan,
+            gpu,
+            data_root,
+            data_root,
+            network_plan,
+            runtime_media,
+        )
+    }
+
+    pub fn build_arguments_with_gpu_and_image_root(
+        machine: &VirtualMachine,
+        qmp_endpoint: SocketAddr,
+        display_plan: QemuDisplayRuntimePlan,
+        gpu: QemuGpuRuntimeSettings,
+        data_root: &Path,
+        image_root: &Path,
+        network_plan: &NetworkRuntimePlan,
+        runtime_media: Option<&VmRuntimeMediaPlan>,
+    ) -> Result<Vec<String>, QemuCommandBuildError> {
         let mut arguments = vec![
             String::from(ARG_NAME),
             machine.name().to_owned(),
@@ -127,7 +149,7 @@ impl QemuCommandBuilder {
         Self::append_installer_iso(machine, data_root, &mut arguments)?;
         Self::append_boot_order(machine, runtime_media, &mut arguments)?;
         Self::append_runtime_disks(runtime_media, &mut arguments)?;
-        Self::append_disks(machine, data_root, &mut arguments);
+        Self::append_disks(machine, data_root, image_root, &mut arguments);
         Self::append_networks(machine, network_plan, &mut arguments)?;
 
         Ok(arguments)
@@ -326,12 +348,26 @@ impl QemuCommandBuilder {
         Ok(())
     }
 
-    fn append_disks(machine: &VirtualMachine, data_root: &Path, arguments: &mut Vec<String>) {
+    fn append_disks(
+        machine: &VirtualMachine,
+        data_root: &Path,
+        image_root: &Path,
+        arguments: &mut Vec<String>,
+    ) {
         for attachment in machine.disks() {
-            let path = data_root
+            let primary = image_root
                 .join(DIR_MACHINES)
                 .join(machine.id().as_str())
                 .join(attachment.image().relative_path());
+            let legacy = data_root
+                .join(DIR_MACHINES)
+                .join(machine.id().as_str())
+                .join(attachment.image().relative_path());
+            let path = if primary.is_file() || !legacy.is_file() {
+                primary
+            } else {
+                legacy
+            };
             arguments.push(String::from(ARG_DRIVE));
             arguments.push(format!(
                 "file={},if={},format={},id={}",
