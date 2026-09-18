@@ -308,6 +308,7 @@ impl EngineApplicationService {
             artifact_cache_client,
             repository.clone(),
             config.data_root.clone(),
+            config.image_root.clone(),
             disk_binary,
         );
         let gaming_input_service = GamingInputApplicationService::new(
