@@ -152,11 +152,14 @@ fn materialize_windows_runtime_config(install_root: &Path) -> Result<(), String>
             true,
         )?;
     }
+    let runtime_download_sources_path = runtime_config_root.join(RUNTIME_DOWNLOAD_SOURCES_FILE);
+    let preserve_existing_download_paths = runtime_download_sources_path.is_file();
     materialize_download_sources(
         &install_config_root.join(RUNTIME_DOWNLOAD_SOURCES_FILE),
-        &runtime_config_root.join(RUNTIME_DOWNLOAD_SOURCES_FILE),
+        &runtime_download_sources_path,
         &iso_root,
         &android_image_root,
+        preserve_existing_download_paths,
     )?;
 
     let packaged_config_path = install_config_root.join("turkuazvm.yml");
@@ -200,8 +203,8 @@ fn materialize_runtime_paths(
 
     content = replace_required(
         content,
-        "  data_root: ./data",
-        &format!("  data_root: \"{vm_data_path}\""),
+        "  image_root: ./data",
+        &format!("  image_root: \"{vm_data_path}\""),
     )?;
     content = replace_required(
         content,
@@ -243,6 +246,7 @@ fn materialize_download_sources(
     runtime_path: &Path,
     iso_root: &Path,
     android_image_root: &Path,
+    preserve_existing_paths: bool,
 ) -> Result<(), String> {
     let source_path = if runtime_path.is_file() {
         runtime_path
@@ -255,16 +259,18 @@ fn materialize_download_sources(
             source_path.display()
         )
     })?;
-    content = replace_default_path(
-        content,
-        "  installer_media: ./data/installer-media",
-        &format!("  installer_media: \"{}\"", yaml_path(iso_root)),
-    );
-    content = replace_default_path(
-        content,
-        "  android_images: ./data/android-image-builds",
-        &format!("  android_images: \"{}\"", yaml_path(android_image_root)),
-    );
+    if !preserve_existing_paths {
+        content = replace_default_path(
+            content,
+            "  installer_media: ./data/installer-media",
+            &format!("  installer_media: \"{}\"", yaml_path(iso_root)),
+        );
+        content = replace_default_path(
+            content,
+            "  android_images: ./data/android-image-builds",
+            &format!("  android_images: \"{}\"", yaml_path(android_image_root)),
+        );
+    }
     fs::write(runtime_path, content).map_err(|error| {
         format!(
             "Runtime download sources could not be written {}: {error}",
