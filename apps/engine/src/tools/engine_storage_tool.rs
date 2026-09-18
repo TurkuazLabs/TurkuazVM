@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/apps/engine/src/tools/engine_storage_tool.rs
 // # 📌 Amac: qemu-img bulunurlugunu snapshot ve clone portlari arkasinda normalize eder
 // # 📌 Modul - Rust
-// # Version: 0.28.0
-// # Aciklama: Engine'in qemu-img yokken typed unavailable hatasi dondurmesini ve dashboard'un calismaya devam etmesini saglar
+// # Version: 0.41.6
+// # Aciklama: qemu-img adapterine metadata data_root ve buyuk disk image_root koklerini ayri aktarir; unavailable davranisini korur
 // # Bagimli Oldugu Katman: Service | Tool
 
 use std::path::PathBuf;
@@ -23,9 +23,9 @@ pub enum EngineStorageTool {
 }
 
 impl EngineStorageTool {
-    pub fn new(binary: Option<PathBuf>, data_root: PathBuf) -> Self {
+    pub fn new(binary: Option<PathBuf>, data_root: PathBuf, image_root: PathBuf) -> Self {
         match binary {
-            Some(binary) => Self::QemuImg(QemuImgTool::new(binary, data_root)),
+            Some(binary) => Self::QemuImg(QemuImgTool::new(binary, data_root, image_root)),
             None => Self::Unavailable,
         }
     }
