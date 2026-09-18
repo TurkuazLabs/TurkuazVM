@@ -20,9 +20,9 @@ v0.41.6, Windows installer icin marka klasor hiyerarsisini duzeltir. Kurulu uygu
 
 - Writable config/runtime koku `%LOCALAPPDATA%\TurkuazVM` olarak kalir.
 - Buyuk kullanici verileri varsayilan olarak `%USERPROFILE%\TurkuazVM` altinda toplanir.
-- VM storage koku: `%USERPROFILE%\TurkuazVM\VMs`.
+- Yeni qcow2/raw diskler ve VM'ye baglanan installer ISO kopyalari: `%USERPROFILE%\TurkuazVM\VMs\<vm-id>\...`.
 - Indirilen installer ISO'lari: `%USERPROFILE%\TurkuazVM\ISOs`.
-- Android virtual/system image ciktilari: `%USERPROFILE%\TurkuazVM\Images\Android`.
+- Android virtual/system image ciktilari: `%USERPROFILE%\TurkuazVM\Images\Android`.\n- VM-ozel Android private disk ve AVD userdata: `%USERPROFILE%\TurkuazVM\VMs\<vm-id>\runtime\...`.
 - Test ve ileri seviye kurulumlar icin `TURKUAZVM_USER_DATA_ROOT` override'i desteklenir; normal kullanici icin ayar gerektirmez.
 - Portable paket klasor-ici davranisini korur.
 
@@ -51,4 +51,7 @@ v0.41.6, Windows installer icin marka klasor hiyerarsisini duzeltir. Kurulu uygu
 - Guest catalog schema 4 korunur.
 - Android image manifest schema 4 korunur.
 - Guest agent protocol version 2 korunur.
+- v0.41.5 ve daha eski kurulu VM metadata'si `%LOCALAPPDATA%\TurkuazVM` altinda kalir.
+- Eski `data/machines/<vm>/disks`, bagli ISO ve Android runtime media konumlari legacy fallback ile okunur; otomatik zorunlu veri tasimasi yapilmaz.
+- Mevcut kullaniciya ozel `download-sources.yml` yollarina dokunulmaz; yeni kurulumlar USERPROFILE koklerini kullanir.
 - QEMU installer icine gomulu degildir; mevcut dependency/runtime katmani tarafindan erisilebilir olmalidir.
