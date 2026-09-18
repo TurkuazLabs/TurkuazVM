@@ -67,7 +67,7 @@ impl QemuImgTool {
     }
 
     fn image_machine_root(&self, vm_id: &VmId) -> PathBuf {
-        self.image_root.join(DIR_MACHINES).join(vm_id.as_str())
+        self.image_root.join(vm_id.as_str())
     }
 
     fn resolve_under_machine_root(
@@ -95,7 +95,7 @@ impl QemuImgTool {
         image: &DiskImage,
     ) -> Result<PathBuf, StorageError> {
         let primary = self.resolve_image_target_path(vm_id, image)?;
-        if primary.exists() || self.image_root == self.data_root {
+        if primary.exists() {
             return Ok(primary);
         }
 
