@@ -107,13 +107,14 @@ impl QemuCommandBuilder {
         network_plan: &NetworkRuntimePlan,
         runtime_media: Option<&VmRuntimeMediaPlan>,
     ) -> Result<Vec<String>, QemuCommandBuildError> {
+        let image_root = data_root.join(DIR_MACHINES);
         Self::build_arguments_with_gpu_and_image_root(
             machine,
             qmp_endpoint,
             display_plan,
             gpu,
             data_root,
-            data_root,
+            &image_root,
             network_plan,
             runtime_media,
         )
@@ -356,7 +357,6 @@ impl QemuCommandBuilder {
     ) {
         for attachment in machine.disks() {
             let primary = image_root
-                .join(DIR_MACHINES)
                 .join(machine.id().as_str())
                 .join(attachment.image().relative_path());
             let legacy = data_root
