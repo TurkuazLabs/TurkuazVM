@@ -2,7 +2,7 @@
 # 📌 Amac: TurkuazVM v0.41.6 TurkuazLabs Windows install-root patchinin durumunu kaydeder
 # 📌 Modul - YAML
 # Version: 0.41.6
-# Aciklama: Markali Windows install-root, pinli Tauri template ve gercek installer smoke dogrulamalarini release metadata olarak toplar
+# Aciklama: Markali Windows install-root, USERPROFILE/TurkuazVM buyuk veri koku, pinli Tauri template ve gercek installer smoke dogrulamalarini toplar
 # Bagimli Oldugu Katman: View | Controller | Service | Repo | Tool | Config | CI/CD
 
 version: 0.41.6
@@ -24,8 +24,13 @@ compatibility:
   breaking_change: false
 focus:
 - All-users Windows install root is Program Files/TurkuazLabs/TurkuazVM
-- Current-user Windows install root is LOCALAPPDATA/TurkuazLabs/TurkuazVM
+- Current-user Windows install root is LOCALAPPDATA/Programs/TurkuazLabs/TurkuazVM
 - Writable runtime/config root remains LOCALAPPDATA/TurkuazVM
+- Large Windows user data root defaults to USERPROFILE/TurkuazVM
+- VM storage defaults to USERPROFILE/TurkuazVM/VMs
+- Installer ISO downloads default to USERPROFILE/TurkuazVM/ISOs
+- Android virtual/system image output defaults to USERPROFILE/TurkuazVM/Images/Android
+- TURKUAZVM_USER_DATA_ROOT can override the large user data root without changing config schema
 - Tauri CLI is pinned to 2.11.4 for Windows distribution
 - Official Tauri 2.11.4 NSIS template is Git-blob-verified before install-root patching
 - Real Windows smoke asserts exact branded roots for /CurrentUser and /AllUsers
@@ -44,6 +49,7 @@ validation:
   windows_current_user_exact_install_root_smoke: REQUIRED_IN_PR
   windows_all_users_exact_install_root_smoke: REQUIRED_IN_PR
   windows_runtime_data_root_smoke: REQUIRED_IN_PR
+  windows_user_data_root_smoke: REQUIRED_IN_PR
   compiler_linux_workspace: REQUIRED_IN_PR
   compiler_windows_workspace: REQUIRED_IN_PR
   runtime_validation: REQUIRED_IN_PR
