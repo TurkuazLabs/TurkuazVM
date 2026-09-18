@@ -203,7 +203,7 @@ fn materialize_runtime_paths(
 
     content = replace_required(
         content,
-        "  image_root: ./data",
+        "  image_root: ./data/machines",
         &format!("  image_root: \"{vm_data_path}\""),
     )?;
     content = replace_required(
