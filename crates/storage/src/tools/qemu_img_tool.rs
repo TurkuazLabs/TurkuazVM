@@ -477,7 +477,7 @@ mod tests {
         let tool = QemuImgTool::new(
             PathBuf::from("qemu-img"),
             PathBuf::from("data"),
-            PathBuf::from("data"),
+            PathBuf::from("data/machines"),
         );
         let vm_id = VmId::parse("vm-a").expect("vm id must be valid");
         let disk_id = DiskId::parse("system").expect("disk id must be valid");
@@ -492,6 +492,55 @@ mod tests {
             .resolve_image_target_path(&vm_id, &image)
             .expect("path must resolve");
         assert_eq!(path, PathBuf::from("data/machines/vm-a/disks/system.qcow2"));
+    }
+
+    #[test]
+    fn existing_image_prefers_new_root_and_falls_back_to_legacy_root() {
+        let root = std::env::temp_dir().join(format!(
+            "turkuazvm-image-root-{}",
+            std::process::id()
+        ));
+        let data_root = root.join("runtime-data");
+        let image_root = root.join("VMs");
+        let vm_id = VmId::parse("legacy-vm").expect("vm id must be valid");
+        let disk_id = DiskId::parse("system").expect("disk id must be valid");
+        let image = DiskImage::create(
+            disk_id,
+            DiskFormat::Qcow2,
+            1024,
+            "disks/system.qcow2",
+        )
+        .expect("disk must be valid");
+        let tool = QemuImgTool::new(
+            PathBuf::from("qemu-img"),
+            data_root.clone(),
+            image_root.clone(),
+        );
+
+        let legacy = data_root
+            .join("machines")
+            .join("legacy-vm")
+            .join("disks/system.qcow2");
+        fs::create_dir_all(legacy.parent().expect("legacy parent"))
+            .expect("legacy directory must be created");
+        fs::write(&legacy, b"legacy").expect("legacy file must be created");
+        assert_eq!(
+            tool.resolve_existing_image_path(&vm_id, &image)
+                .expect("legacy image must resolve"),
+            legacy
+        );
+
+        let primary = image_root.join("legacy-vm").join("disks/system.qcow2");
+        fs::create_dir_all(primary.parent().expect("primary parent"))
+            .expect("primary directory must be created");
+        fs::write(&primary, b"primary").expect("primary file must be created");
+        assert_eq!(
+            tool.resolve_existing_image_path(&vm_id, &image)
+                .expect("primary image must resolve"),
+            primary
+        );
+
+        let _ = fs::remove_dir_all(root);
     }
 }
 
