@@ -1,7 +1,7 @@
 // # 📄 Dosya Yolu: /turkuazvm/apps/engine/src/services/android_image_application_service.rs
 // # 📌 Amac: Android Image bounded context ile VM bounded contextini Engine seviyesinde orkestre eder
 // # 📌 Modul - Rust
-// # Version: 0.40.14
+// # Version: 0.41.6
 // # Aciklama: Android SDK provider configini distribution ve runtime media Tool katmanlarina tasir; resolver/cache ve VM assignment akislarini compose eder
 // # Bagimli Oldugu Katman: Service | Repo | Tool
 
@@ -79,6 +79,7 @@ impl AndroidImageApplicationService {
         artifact_cache_client: Option<SharedArtifactCacheClient>,
         repository: EngineRepository,
         data_root: std::path::PathBuf,
+        vm_root: std::path::PathBuf,
         qemu_img_binary: Option<std::path::PathBuf>,
     ) -> Self {
         let image_repository = YamlAndroidImageRepository::new(data_root.clone());
@@ -185,6 +186,7 @@ impl AndroidImageApplicationService {
             query_service: VmQueryService::new(repository),
             runtime_media_tool: AndroidRuntimeMediaTool::new(AndroidRuntimeMediaSettings {
                 data_root,
+                vm_root,
                 image_output_root,
                 qemu_img_binary,
                 android_sdk_tool_root,
