@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/crates/qemu/src/domain/qemu_runtime.rs
 // # 📌 Amac: QEMU process lifecycle ve display adapter ayarlarini tanimlar
 // # 📌 Modul - Rust
-// # Version: 0.28.0
-// # Aciklama: QMP, native RFB display, Gaming GPU backend, data root ve process timeout ayarlarini inline config kullanmadan tasir
+// # Version: 0.41.6
+// # Aciklama: QMP, display, metadata data_root ve buyuk VM disk image_root koklerini runtime katmanina ayri tasir
 // # Bagimli Oldugu Katman: Tool
 
 use std::net::IpAddr;
@@ -48,4 +48,5 @@ pub struct QemuRuntimeSettings {
     pub rfb_display_min: u16,
     pub rfb_display_max: u16,
     pub data_root: PathBuf,
+    pub image_root: PathBuf,
 }

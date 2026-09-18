@@ -25,7 +25,7 @@ def main() -> None:
     require(desktop_main, 'fs::create_dir_all(runtime_root.join("data"))')
     require(desktop_main, 'fs::create_dir_all(runtime_root.join("packages"))')
     require(desktop_main, "RUNTIME_DOWNLOAD_SOURCES_FILE")
-    require(desktop_main, "false,")
+    require(desktop_main, "preserve_existing_download_paths")
     require(desktop_main, 'display_executable_path: bin/turkuazvm-display.exe')
     require(desktop_main, 'executable_path: bin/turkuazvm-engine.exe')
     require(desktop_main, 'managed_helper_path: scripts/network_windows_managed.ps1')

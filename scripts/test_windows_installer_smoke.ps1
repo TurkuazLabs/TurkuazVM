@@ -1,8 +1,8 @@
 # 📄 Dosya Yolu: /turkuazvm/scripts/test_windows_installer_smoke.ps1
 # 📌 Amac: Uretilen TurkuazVM NSIS paketini current-user ve per-machine modlarinda gercek Windows runner uzerinde kurup kaldirarak dogrular
 # 📌 Modul - PowerShell Tool/Test
-# Version: 0.41.5
-# Aciklama: /CurrentUser ve /AllUsers kurulumlarini, registry scope'larini, Windows known-folder install koklerini, LOCALAPPDATA runtime materialization'ini ve uninstall sonrasi kullanici verisi korunmasini fail-closed test eder
+# Version: 0.41.6
+# Aciklama: Installer koklerini, LOCALAPPDATA metadata/runtime ile USERPROFILE VM/ISO/Android image koklerini, registry scope ve uninstall davranisini fail-closed test eder
 # Bagimli Oldugu Katman: Tool | CI/CD | View
 
 [CmdletBinding()]
@@ -20,11 +20,18 @@ if ([string]::IsNullOrWhiteSpace($ArtifactRoot)) {
 $ArtifactRoot = (Resolve-Path -LiteralPath $ArtifactRoot).Path
 
 # Installer target location and application runtime location are deliberately tested
-# as separate concepts. NSIS resolves install folders through Windows known folders,
-# while TurkuazVM runtime state follows the LOCALAPPDATA environment inherited by the app.
+# as separate concepts. Installed binaries live below the TurkuazLabs/TurkuazVM
+# brand hierarchy, while writable runtime state remains under LOCALAPPDATA/TurkuazVM.
 $WindowsLocalAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
 $WindowsProgramFiles = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFiles)
 $WindowsProgramFilesX86 = [Environment]::GetFolderPath([Environment+SpecialFolder]::ProgramFilesX86)
+$BrandInstallRelativePath = "TurkuazLabs\TurkuazVM"
+$CurrentUserInstallRelativePath = "Programs\$BrandInstallRelativePath"
+$UserDataRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("TurkuazVM-user-data-smoke-" + [guid]::NewGuid().ToString("N"))
+$env:TURKUAZVM_USER_DATA_ROOT = $UserDataRoot
+$ExpectedVmRoot = Join-Path $UserDataRoot "VMs"
+$ExpectedIsoRoot = Join-Path $UserDataRoot "ISOs"
+$ExpectedAndroidImageRoot = Join-Path $UserDataRoot "Images/Android"
 $OriginalLocalAppData = $env:LOCALAPPDATA
 $SmokeLocalAppData = Join-Path ([System.IO.Path]::GetTempPath()) ("TurkuazVM-installer-smoke-" + [guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $SmokeLocalAppData -Force | Out-Null
@@ -56,6 +63,11 @@ function Normalize-RegistryPath {
         return ""
     }
     return $Value.Trim().Trim([char]34)
+}
+
+function Normalize-FullPath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    return [System.IO.Path]::GetFullPath($Path).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
 }
 
 function Get-SafePropertyValue {
@@ -193,30 +205,38 @@ function Assert-InstallRootScope {
         [string]$ExpectedScope
     )
 
+    $NormalizedInstallRoot = Normalize-FullPath -Path $InstallRoot
+
     if ($ExpectedScope -eq "CurrentUser") {
         if ([string]::IsNullOrWhiteSpace($WindowsLocalAppData)) {
             throw "WINDOWS_LOCALAPPDATA_KNOWN_FOLDER_MISSING"
         }
-        if (-not $InstallRoot.StartsWith($WindowsLocalAppData, [System.StringComparison]::OrdinalIgnoreCase)) {
-            throw "CURRENT_USER_INSTALL_OUTSIDE_WINDOWS_LOCALAPPDATA: $InstallRoot"
+        $ExpectedRoot = Normalize-FullPath -Path (Join-Path $WindowsLocalAppData $CurrentUserInstallRelativePath)
+        if (-not $NormalizedInstallRoot.Equals($ExpectedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+            throw "CURRENT_USER_INSTALL_ROOT_MISMATCH: expected=$ExpectedRoot actual=$NormalizedInstallRoot"
         }
         return
     }
 
     $AllowedProgramRoots = @($WindowsProgramFiles, $WindowsProgramFilesX86) |
-        Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        Select-Object -Unique
     if ($AllowedProgramRoots.Count -eq 0) {
         throw "WINDOWS_PROGRAM_FILES_KNOWN_FOLDER_MISSING"
     }
-    $MatchesProgramRoot = $false
-    foreach ($ProgramRoot in $AllowedProgramRoots) {
-        if ($InstallRoot.StartsWith($ProgramRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-            $MatchesProgramRoot = $true
+
+    $ExpectedRoots = @($AllowedProgramRoots | ForEach-Object {
+        Normalize-FullPath -Path (Join-Path $_ $BrandInstallRelativePath)
+    })
+    $MatchesExpectedRoot = $false
+    foreach ($ExpectedRoot in $ExpectedRoots) {
+        if ($NormalizedInstallRoot.Equals($ExpectedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $MatchesExpectedRoot = $true
             break
         }
     }
-    if (-not $MatchesProgramRoot) {
-        throw "ALL_USERS_INSTALL_OUTSIDE_PROGRAM_FILES: $InstallRoot"
+    if (-not $MatchesExpectedRoot) {
+        throw "ALL_USERS_INSTALL_ROOT_MISMATCH: expected=$($ExpectedRoots -join ';') actual=$NormalizedInstallRoot"
     }
 }
 
@@ -266,8 +286,26 @@ function Assert-MaterializedRuntime {
                 throw "RUNTIME_CONFIG_ABSOLUTE_ASSET_PATH_MISSING: $Expected"
             }
         }
+        $RuntimeSources = Get-Content -LiteralPath $RuntimeDownloadSourcesPath -Raw
+        $ExpectedVmYaml = (Normalize-FullPath -Path $ExpectedVmRoot).Replace('\', '/')
+        $ExpectedIsoYaml = (Normalize-FullPath -Path $ExpectedIsoRoot).Replace('\', '/')
+        $ExpectedAndroidImageYaml = (Normalize-FullPath -Path $ExpectedAndroidImageRoot).Replace('\', '/')
+        foreach ($RequiredDirectory in @($UserDataRoot, $ExpectedVmRoot, $ExpectedIsoRoot, $ExpectedAndroidImageRoot)) {
+            if (-not (Test-Path -LiteralPath $RequiredDirectory -PathType Container)) {
+                throw "USER_DATA_DIRECTORY_MISSING: $RequiredDirectory"
+            }
+        }
         if ($RuntimeConfig -notmatch 'data_root:\s*\./data') {
-            throw "RUNTIME_CONFIG_DATA_ROOT_NOT_LOCALAPPDATA_RELATIVE"
+            throw "RUNTIME_METADATA_DATA_ROOT_NOT_LOCALAPPDATA_RELATIVE"
+        }
+        if (-not $RuntimeConfig.Contains("image_root: `"$ExpectedVmYaml`"")) {
+            throw "USER_DATA_VM_IMAGE_ROOT_NOT_MATERIALIZED: expected=$ExpectedVmYaml"
+        }
+        if (-not $RuntimeSources.Contains("installer_media: `"$ExpectedIsoYaml`"")) {
+            throw "USER_DATA_ISO_ROOT_NOT_MATERIALIZED: expected=$ExpectedIsoYaml"
+        }
+        if (-not $RuntimeSources.Contains("android_images: `"$ExpectedAndroidImageYaml`"")) {
+            throw "USER_DATA_ANDROID_IMAGE_ROOT_NOT_MATERIALIZED: expected=$ExpectedAndroidImageYaml"
         }
         if ($RuntimeConfig -match 'target/debug/turkuazvm-(engine|display)') {
             throw "RUNTIME_CONFIG_REFERENCES_DEBUG_BINARY"
@@ -362,12 +400,18 @@ try {
     Write-Output "WINDOWS_INSTALLER_SMOKE=PASS"
     Write-Output "WINDOWS_RUNTIME_DATA_ROOT_SMOKE=PASS"
     Write-Output "WINDOWS_DUAL_INSTALL_MODE_SMOKE=PASS"
+    Write-Output "WINDOWS_TURKUAZLABS_INSTALL_ROOT_SMOKE=PASS"
+    Write-Output "WINDOWS_USER_DATA_ROOT_SMOKE=PASS"
 }
 finally {
     Stop-TurkuazRuntimeProcesses -DesktopProcess $null
-    try { Remove-ExistingTurkuazInstallations } catch { Write-Warning "Installer smoke cleanup failed: $($_.Exception.Message)" }
+    try { Remove-ExistingTurkuazInstallations } catch { Write-Warning $_ }
     if (Test-Path -LiteralPath $SmokeLocalAppData) {
         Remove-Item -LiteralPath $SmokeLocalAppData -Recurse -Force -ErrorAction SilentlyContinue
     }
+    if (Test-Path -LiteralPath $UserDataRoot) {
+        Remove-Item -LiteralPath $UserDataRoot -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Remove-Item Env:TURKUAZVM_USER_DATA_ROOT -ErrorAction SilentlyContinue
     $env:LOCALAPPDATA = $OriginalLocalAppData
 }

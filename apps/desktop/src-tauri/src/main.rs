@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/apps/desktop/src-tauri/src/main.rs
 // # 📌 Amac: TurkuazVM Desktop Tauri composition root ve runtime update bridge giris noktasini saglar
 // # 📌 Modul - Rust
-// # Version: 0.41.5
-// # Aciklama: Kurulu Windows paketinde writable runtime/config kokunu LOCALAPPDATA altinda materialize eder; portable paket klasor-ici davranisini korur
+// # Version: 0.41.6
+// # Aciklama: Kurulu Windows paketinde config/runtime kokunu LOCALAPPDATA, ISO/VM/image gibi buyuk kullanici verilerini USERPROFILE/TurkuazVM altinda materialize eder; portable davranisini korur
 // # Bagimli Oldugu Katman: Controller | Service | Tool | View
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
@@ -51,11 +51,23 @@ const PORTABLE_MARKER_FILE: &str = "README-PORTABLE.txt";
 #[cfg(windows)]
 const WINDOWS_LOCAL_APP_DATA_ENV: &str = "LOCALAPPDATA";
 #[cfg(windows)]
+const WINDOWS_USER_PROFILE_ENV: &str = "USERPROFILE";
+#[cfg(windows)]
+const USER_DATA_ROOT_ENV: &str = "TURKUAZVM_USER_DATA_ROOT";
+#[cfg(windows)]
 const RUNTIME_PRODUCT_DIRECTORY: &str = "TurkuazVM";
 #[cfg(windows)]
 const RUNTIME_CONFIG_DIRECTORY: &str = "config";
 #[cfg(windows)]
 const RUNTIME_DOWNLOAD_SOURCES_FILE: &str = "download-sources.yml";
+#[cfg(windows)]
+const USER_DATA_VM_DIRECTORY: &str = "VMs";
+#[cfg(windows)]
+const USER_DATA_ISO_DIRECTORY: &str = "ISOs";
+#[cfg(windows)]
+const USER_DATA_IMAGE_DIRECTORY: &str = "Images";
+#[cfg(windows)]
+const USER_DATA_ANDROID_IMAGE_DIRECTORY: &str = "Android";
 #[cfg(windows)]
 const RUNTIME_STATIC_CONFIG_FILES: [&str; 2] = ["game-catalog.yml", "guest-catalog.yml"];
 
@@ -118,6 +130,21 @@ fn materialize_windows_runtime_config(install_root: &Path) -> Result<(), String>
         format!("Installed runtime package directory could not be created: {error}")
     })?;
 
+    let user_data_root = windows_user_data_root()?;
+    let vm_root = user_data_root.join(USER_DATA_VM_DIRECTORY);
+    let iso_root = user_data_root.join(USER_DATA_ISO_DIRECTORY);
+    let android_image_root = user_data_root
+        .join(USER_DATA_IMAGE_DIRECTORY)
+        .join(USER_DATA_ANDROID_IMAGE_DIRECTORY);
+    for directory in [&user_data_root, &vm_root, &iso_root, &android_image_root] {
+        fs::create_dir_all(directory).map_err(|error| {
+            format!(
+                "Windows user data directory could not be created {}: {error}",
+                directory.display()
+            )
+        })?;
+    }
+
     for file_name in RUNTIME_STATIC_CONFIG_FILES {
         copy_config_file(
             &install_config_root.join(file_name),
@@ -125,10 +152,14 @@ fn materialize_windows_runtime_config(install_root: &Path) -> Result<(), String>
             true,
         )?;
     }
-    copy_config_file(
+    let runtime_download_sources_path = runtime_config_root.join(RUNTIME_DOWNLOAD_SOURCES_FILE);
+    let preserve_existing_download_paths = runtime_download_sources_path.is_file();
+    materialize_download_sources(
         &install_config_root.join(RUNTIME_DOWNLOAD_SOURCES_FILE),
-        &runtime_config_root.join(RUNTIME_DOWNLOAD_SOURCES_FILE),
-        false,
+        &runtime_download_sources_path,
+        &iso_root,
+        &android_image_root,
+        preserve_existing_download_paths,
     )?;
 
     let packaged_config_path = install_config_root.join("turkuazvm.yml");
@@ -139,7 +170,7 @@ fn materialize_windows_runtime_config(install_root: &Path) -> Result<(), String>
             packaged_config_path.display()
         )
     })?;
-    let runtime_config = materialize_runtime_paths(packaged_config, install_root)?;
+    let runtime_config = materialize_runtime_paths(packaged_config, install_root, &vm_root)?;
     fs::write(&runtime_config_path, runtime_config).map_err(|error| {
         format!(
             "Installed runtime config could not be written {}: {error}",
@@ -157,14 +188,24 @@ fn materialize_windows_runtime_config(install_root: &Path) -> Result<(), String>
 }
 
 #[cfg(windows)]
-fn materialize_runtime_paths(mut content: String, install_root: &Path) -> Result<String, String> {
+fn materialize_runtime_paths(
+    mut content: String,
+    install_root: &Path,
+    vm_root: &Path,
+) -> Result<String, String> {
     let display_path = yaml_path(&install_root.join("bin/turkuazvm-display.exe"));
     let engine_path = yaml_path(&install_root.join("bin/turkuazvm-engine.exe"));
     let network_helper_path = yaml_path(&install_root.join("scripts/network_windows_managed.ps1"));
     let android_build_script_path = yaml_path(
         &install_root.join("guest/android-image/scripts/build_turkuaz_android_image.sh"),
     );
+    let vm_data_path = yaml_path(vm_root);
 
+    content = replace_required(
+        content,
+        "  image_root: ./data/machines",
+        &format!("  image_root: \"{vm_data_path}\""),
+    )?;
     content = replace_required(
         content,
         "display_executable_path: bin/turkuazvm-display.exe",
@@ -186,6 +227,65 @@ fn materialize_runtime_paths(mut content: String, install_root: &Path) -> Result
         &format!("build_script: \"{android_build_script_path}\""),
     )?;
     Ok(content)
+}
+
+#[cfg(windows)]
+fn windows_user_data_root() -> Result<std::path::PathBuf, String> {
+    if let Some(value) = env::var_os(USER_DATA_ROOT_ENV).filter(|value| !value.is_empty()) {
+        return Ok(std::path::PathBuf::from(value));
+    }
+    let user_profile = env::var_os(WINDOWS_USER_PROFILE_ENV)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| String::from("USERPROFILE is not available for installed user data"))?;
+    Ok(Path::new(&user_profile).join(RUNTIME_PRODUCT_DIRECTORY))
+}
+
+#[cfg(windows)]
+fn materialize_download_sources(
+    packaged_path: &Path,
+    runtime_path: &Path,
+    iso_root: &Path,
+    android_image_root: &Path,
+    preserve_existing_paths: bool,
+) -> Result<(), String> {
+    let source_path = if runtime_path.is_file() {
+        runtime_path
+    } else {
+        packaged_path
+    };
+    let mut content = fs::read_to_string(source_path).map_err(|error| {
+        format!(
+            "Download sources could not be read {}: {error}",
+            source_path.display()
+        )
+    })?;
+    if !preserve_existing_paths {
+        content = replace_default_path(
+            content,
+            "  installer_media: ./data/installer-media",
+            &format!("  installer_media: \"{}\"", yaml_path(iso_root)),
+        );
+        content = replace_default_path(
+            content,
+            "  android_images: ./data/android-image-builds",
+            &format!("  android_images: \"{}\"", yaml_path(android_image_root)),
+        );
+    }
+    fs::write(runtime_path, content).map_err(|error| {
+        format!(
+            "Runtime download sources could not be written {}: {error}",
+            runtime_path.display()
+        )
+    })
+}
+
+#[cfg(windows)]
+fn replace_default_path(content: String, from: &str, to: &str) -> String {
+    if content.contains(from) {
+        content.replacen(from, to, 1)
+    } else {
+        content
+    }
 }
 
 #[cfg(windows)]

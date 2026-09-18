@@ -246,7 +246,11 @@ impl EngineApplicationService {
         }
         let portable_image_policy = config.storage_policy.portable_image.clone();
         let query_service = VmQueryService::new(repository.clone());
-        let storage = EngineStorageTool::new(disk_binary.clone(), config.data_root.clone());
+        let storage = EngineStorageTool::new(
+            disk_binary.clone(),
+            config.data_root.clone(),
+            config.image_root.clone(),
+        );
         let snapshot_service = SnapshotService::new(repository.clone(), storage.clone());
         let clone_service = CloneService::new(repository.clone(), storage.clone());
         let storage_service = StorageService::new(repository.clone(), storage);
@@ -255,7 +259,7 @@ impl EngineApplicationService {
             DiskFormat::Raw => String::from("raw"),
         };
         let storage_host_service = StorageHostService::new(
-            HostStorageTool::new(config.data_root.clone()),
+            HostStorageTool::new(config.image_root.clone()),
             disk_binary.is_some(),
             default_runtime_format,
             config.storage_policy.default_disk_size_gib,
@@ -276,6 +280,7 @@ impl EngineApplicationService {
             repository.clone(),
             LocalGuestMediaTool::new(LocalGuestMediaSettings {
                 data_root: config.data_root.clone(),
+                image_root: config.image_root.clone(),
             }),
             UefiFirmwareTool::new(UefiFirmwareSettings {
                 data_root: config.data_root.clone(),
@@ -303,6 +308,7 @@ impl EngineApplicationService {
             artifact_cache_client,
             repository.clone(),
             config.data_root.clone(),
+            config.image_root.clone(),
             disk_binary,
         );
         let gaming_input_service = GamingInputApplicationService::new(

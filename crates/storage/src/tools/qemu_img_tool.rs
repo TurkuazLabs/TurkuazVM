@@ -1,8 +1,8 @@
 // # 📄 Dosya Yolu: /turkuazvm/crates/storage/src/tools/qemu_img_tool.rs
 // # 📌 Amac: StoragePort islemlerini qemu-img executable uzerinden uygular
 // # 📌 Modul - Rust
-// # Version: 0.28.0
-// # Aciklama: QCOW2/RAW create/info/resize, internal snapshot, full clone ve linked clone islemlerini host filesystem ile yonetir
+// # Version: 0.41.6
+// # Aciklama: Yeni QCOW2/RAW diskleri image_root altinda olusturur; eski data_root diskleri icin read/boot/snapshot/clone fallback uyumlulugunu korur
 // # Bagimli Oldugu Katman: Tool
 
 use std::fs;
@@ -50,26 +50,60 @@ struct QemuImgInfoOutput {
 pub struct QemuImgTool {
     binary: PathBuf,
     data_root: PathBuf,
+    image_root: PathBuf,
 }
 
 impl QemuImgTool {
-    pub fn new(binary: PathBuf, data_root: PathBuf) -> Self {
-        Self { binary, data_root }
+    pub fn new(binary: PathBuf, data_root: PathBuf, image_root: PathBuf) -> Self {
+        Self {
+            binary,
+            data_root,
+            image_root,
+        }
     }
 
-    fn resolve_image_path(&self, vm_id: &VmId, image: &DiskImage) -> Result<PathBuf, StorageError> {
-        let machine_root = self.data_root.join(DIR_MACHINES).join(vm_id.as_str());
-        let resolved = machine_root.join(image.relative_path());
+    fn data_machine_root(&self, vm_id: &VmId) -> PathBuf {
+        self.data_root.join(DIR_MACHINES).join(vm_id.as_str())
+    }
 
-        if !resolved.starts_with(&machine_root) {
+    fn image_machine_root(&self, vm_id: &VmId) -> PathBuf {
+        self.image_root.join(vm_id.as_str())
+    }
+
+    fn resolve_under_machine_root(
+        machine_root: &Path,
+        image: &DiskImage,
+    ) -> Result<PathBuf, StorageError> {
+        let resolved = machine_root.join(image.relative_path());
+        if !resolved.starts_with(machine_root) {
             return Err(StorageError::UnsafePath(image.relative_path().to_owned()));
         }
-
         Ok(resolved)
     }
 
-    fn machine_root(&self, vm_id: &VmId) -> PathBuf {
-        self.data_root.join(DIR_MACHINES).join(vm_id.as_str())
+    fn resolve_image_target_path(
+        &self,
+        vm_id: &VmId,
+        image: &DiskImage,
+    ) -> Result<PathBuf, StorageError> {
+        Self::resolve_under_machine_root(&self.image_machine_root(vm_id), image)
+    }
+
+    fn resolve_existing_image_path(
+        &self,
+        vm_id: &VmId,
+        image: &DiskImage,
+    ) -> Result<PathBuf, StorageError> {
+        let primary = self.resolve_image_target_path(vm_id, image)?;
+        if primary.exists() {
+            return Ok(primary);
+        }
+
+        let legacy = Self::resolve_under_machine_root(&self.data_machine_root(vm_id), image)?;
+        if legacy.exists() {
+            return Ok(legacy);
+        }
+        Ok(primary)
     }
 
     fn ensure_target_parent(path: &Path) -> Result<(), CloneStorageError> {
@@ -161,7 +195,7 @@ impl QemuImgTool {
 
 impl StoragePort for QemuImgTool {
     fn create_image(&self, vm_id: &VmId, image: &DiskImage) -> Result<StorageImageInfo, StorageError> {
-        let path = self.resolve_image_path(vm_id, image)?;
+        let path = self.resolve_image_target_path(vm_id, image)?;
         if path.exists() {
             return Err(StorageError::AlreadyExists(path.display().to_string()));
         }
@@ -184,7 +218,7 @@ impl StoragePort for QemuImgTool {
     }
 
     fn inspect_image(&self, vm_id: &VmId, image: &DiskImage) -> Result<StorageImageInfo, StorageError> {
-        let path = self.resolve_image_path(vm_id, image)?;
+        let path = self.resolve_existing_image_path(vm_id, image)?;
         self.inspect_path(&path)
     }
 
@@ -194,7 +228,7 @@ impl StoragePort for QemuImgTool {
         image: &DiskImage,
         new_virtual_size_bytes: u64,
     ) -> Result<StorageImageInfo, StorageError> {
-        let path = self.resolve_image_path(vm_id, image)?;
+        let path = self.resolve_existing_image_path(vm_id, image)?;
         if !path.is_file() {
             return Err(StorageError::NotFound(path.display().to_string()));
         }
@@ -211,7 +245,7 @@ impl StoragePort for QemuImgTool {
     }
 
     fn delete_image(&self, vm_id: &VmId, image: &DiskImage) -> Result<(), StorageError> {
-        let path = self.resolve_image_path(vm_id, image)?;
+        let path = self.resolve_existing_image_path(vm_id, image)?;
         if !path.exists() {
             return Ok(());
         }
@@ -233,7 +267,7 @@ impl SnapshotPort for QemuImgTool {
             ));
         }
         let path = self
-            .resolve_image_path(vm_id, image)
+            .resolve_existing_image_path(vm_id, image)
             .map_err(map_storage_to_snapshot)?;
         if !path.is_file() {
             return Err(SnapshotStorageError::NotFound(path.display().to_string()));
@@ -256,7 +290,7 @@ impl SnapshotPort for QemuImgTool {
         snapshot_id: &SnapshotId,
     ) -> Result<(), SnapshotStorageError> {
         let path = self
-            .resolve_image_path(vm_id, image)
+            .resolve_existing_image_path(vm_id, image)
             .map_err(map_storage_to_snapshot)?;
         let arguments = vec![
             String::from(CMD_SNAPSHOT),
@@ -276,7 +310,7 @@ impl SnapshotPort for QemuImgTool {
         snapshot_id: &SnapshotId,
     ) -> Result<(), SnapshotStorageError> {
         let path = self
-            .resolve_image_path(vm_id, image)
+            .resolve_existing_image_path(vm_id, image)
             .map_err(map_storage_to_snapshot)?;
         let arguments = vec![
             String::from(CMD_SNAPSHOT),
@@ -292,7 +326,7 @@ impl SnapshotPort for QemuImgTool {
 
 impl CloneStoragePort for QemuImgTool {
     fn prepare_clone_target(&self, target_vm_id: &VmId) -> Result<(), CloneStorageError> {
-        let target_root = self.machine_root(target_vm_id);
+        let target_root = self.image_machine_root(target_vm_id);
         if target_root.exists() {
             return Err(CloneStorageError::AlreadyExists(
                 target_root.display().to_string(),
@@ -311,10 +345,10 @@ impl CloneStoragePort for QemuImgTool {
         mode: CloneMode,
     ) -> Result<StorageImageInfo, CloneStorageError> {
         let source_path = self
-            .resolve_image_path(source_vm_id, source)
+            .resolve_existing_image_path(source_vm_id, source)
             .map_err(map_storage_to_clone)?;
         let target_path = self
-            .resolve_image_path(target_vm_id, target)
+            .resolve_image_target_path(target_vm_id, target)
             .map_err(map_storage_to_clone)?;
         if !source_path.is_file() {
             return Err(CloneStorageError::NotFound(source_path.display().to_string()));
@@ -380,24 +414,38 @@ impl CloneStoragePort for QemuImgTool {
         source_vm_id: &VmId,
         target_vm_id: &VmId,
     ) -> Result<(), CloneStorageError> {
-        let source_root = self.machine_root(source_vm_id);
-        let target_root = self.machine_root(target_vm_id);
-        for directory in [DIR_MEDIA, DIR_FIRMWARE] {
-            Self::copy_directory_recursive(
-                &source_root.join(directory),
-                &target_root.join(directory),
-            )?;
-        }
+        let source_data_root = self.data_machine_root(source_vm_id);
+        let target_data_root = self.data_machine_root(target_vm_id);
+        Self::copy_directory_recursive(
+            &source_data_root.join(DIR_FIRMWARE),
+            &target_data_root.join(DIR_FIRMWARE),
+        )?;
+
+        let source_primary_media = self.image_machine_root(source_vm_id).join(DIR_MEDIA);
+        let source_legacy_media = source_data_root.join(DIR_MEDIA);
+        let source_media = if source_primary_media.exists() || !source_legacy_media.exists() {
+            source_primary_media
+        } else {
+            source_legacy_media
+        };
+        let target_media = self.image_machine_root(target_vm_id).join(DIR_MEDIA);
+        Self::copy_directory_recursive(&source_media, &target_media)?;
         Ok(())
     }
 
     fn cleanup_clone(&self, target_vm_id: &VmId) -> Result<(), CloneStorageError> {
-        let target_root = self.machine_root(target_vm_id);
-        if !target_root.exists() {
-            return Ok(());
+        let image_target_root = self.image_machine_root(target_vm_id);
+        if image_target_root.exists() {
+            fs::remove_dir_all(&image_target_root)
+                .map_err(|error| CloneStorageError::ExecutionFailed(error.to_string()))?;
         }
-        fs::remove_dir_all(&target_root)
-            .map_err(|error| CloneStorageError::ExecutionFailed(error.to_string()))
+
+        let data_target_root = self.data_machine_root(target_vm_id);
+        if data_target_root.exists() && data_target_root != image_target_root {
+            fs::remove_dir_all(&data_target_root)
+                .map_err(|error| CloneStorageError::ExecutionFailed(error.to_string()))?;
+        }
+        Ok(())
     }
 }
 
@@ -434,7 +482,11 @@ mod tests {
 
     #[test]
     fn relative_image_path_stays_under_machine_root() {
-        let tool = QemuImgTool::new(PathBuf::from("qemu-img"), PathBuf::from("data"));
+        let tool = QemuImgTool::new(
+            PathBuf::from("qemu-img"),
+            PathBuf::from("data"),
+            PathBuf::from("data/machines"),
+        );
         let vm_id = VmId::parse("vm-a").expect("vm id must be valid");
         let disk_id = DiskId::parse("system").expect("disk id must be valid");
         let image = DiskImage::create(
@@ -445,9 +497,58 @@ mod tests {
         )
         .expect("disk must be valid");
         let path = tool
-            .resolve_image_path(&vm_id, &image)
+            .resolve_image_target_path(&vm_id, &image)
             .expect("path must resolve");
         assert_eq!(path, PathBuf::from("data/machines/vm-a/disks/system.qcow2"));
+    }
+
+    #[test]
+    fn existing_image_prefers_new_root_and_falls_back_to_legacy_root() {
+        let root = std::env::temp_dir().join(format!(
+            "turkuazvm-image-root-{}",
+            std::process::id()
+        ));
+        let data_root = root.join("runtime-data");
+        let image_root = root.join("VMs");
+        let vm_id = VmId::parse("legacy-vm").expect("vm id must be valid");
+        let disk_id = DiskId::parse("system").expect("disk id must be valid");
+        let image = DiskImage::create(
+            disk_id,
+            DiskFormat::Qcow2,
+            1024,
+            "disks/system.qcow2",
+        )
+        .expect("disk must be valid");
+        let tool = QemuImgTool::new(
+            PathBuf::from("qemu-img"),
+            data_root.clone(),
+            image_root.clone(),
+        );
+
+        let legacy = data_root
+            .join("machines")
+            .join("legacy-vm")
+            .join("disks/system.qcow2");
+        fs::create_dir_all(legacy.parent().expect("legacy parent"))
+            .expect("legacy directory must be created");
+        fs::write(&legacy, b"legacy").expect("legacy file must be created");
+        assert_eq!(
+            tool.resolve_existing_image_path(&vm_id, &image)
+                .expect("legacy image must resolve"),
+            legacy
+        );
+
+        let primary = image_root.join("legacy-vm").join("disks/system.qcow2");
+        fs::create_dir_all(primary.parent().expect("primary parent"))
+            .expect("primary directory must be created");
+        fs::write(&primary, b"primary").expect("primary file must be created");
+        assert_eq!(
+            tool.resolve_existing_image_path(&vm_id, &image)
+                .expect("primary image must resolve"),
+            primary
+        );
+
+        let _ = fs::remove_dir_all(root);
     }
 }
 

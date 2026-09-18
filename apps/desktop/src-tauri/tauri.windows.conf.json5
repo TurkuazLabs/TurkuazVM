@@ -1,8 +1,8 @@
 // 📄 Dosya Yolu: /turkuazvm/apps/desktop/src-tauri/tauri.windows.conf.json5
 // 📌 Amac: TurkuazVM Windows NSIS dagitim ayarlarini ana Tauri config uzerine uygular
 // 📌 Modul - JSON5
-// Version: 0.41.5
-// Aciklama: Current-user veya system-wide secilebilir NSIS kurulumunu, Turkce/Ingilizce dil secimini ve Turkce MultiUser hook'unu tanimlar; runtime writable state LOCALAPPDATA altinda tutulur
+// Version: 0.41.6
+// Aciklama: Current-user/system-wide NSIS modlarini ve Turkce/Ingilizce dil secimini korur; v0.41.6 package katmani install kokunu TurkuazLabs/TurkuazVM olarak uretir
 // Bagimli Oldugu Katman: Tool | View | CI/CD
 {
   "bundle": {

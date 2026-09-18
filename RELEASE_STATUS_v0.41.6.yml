@@ -1,0 +1,67 @@
+# 📄 Dosya Yolu: /turkuazvm/RELEASE_STATUS_v0.41.6.yml
+# 📌 Amac: TurkuazVM v0.41.6 TurkuazLabs Windows install-root patchinin durumunu kaydeder
+# 📌 Modul - YAML
+# Version: 0.41.6
+# Aciklama: Markali Windows install-root, USERPROFILE/TurkuazVM buyuk veri koku, pinli Tauri template ve gercek installer smoke dogrulamalarini toplar
+# Bagimli Oldugu Katman: View | Controller | Service | Repo | Tool | Config | CI/CD
+
+version: 0.41.6
+package: TurkuazVM-v0.41.6-BRANDED-WINDOWS-INSTALL-ROOT
+package_kind: WINDOWS_BRANDED_INSTALL_ROOT_PATCH
+base: TurkuazVM-v0.41.5
+artifacts:
+  windows_setup: TurkuazVM-0.41.6-x64-Setup.exe
+  windows_portable: TurkuazVM-0.41.6-x64-Portable.zip
+  sha256_manifest: TurkuazVM-0.41.6-SHA256SUMS.txt
+compatibility:
+  config_schema: 22
+  download_sources_schema: 5
+  engine_api_version: 24
+  vm_manifest_schema: 6
+  guest_catalog_schema: 4
+  android_image_manifest_schema: 4
+  guest_agent_protocol_version: 2
+  breaking_change: false
+focus:
+- All-users Windows install root is Program Files/TurkuazLabs/TurkuazVM
+- Current-user Windows install root is LOCALAPPDATA/Programs/TurkuazLabs/TurkuazVM
+- Writable runtime/config root remains LOCALAPPDATA/TurkuazVM
+- Large Windows user data root defaults to USERPROFILE/TurkuazVM
+- New qcow2/raw disks and attached ISO copies default to USERPROFILE/TurkuazVM/VMs/<vm-id>
+- Installer ISO downloads default to USERPROFILE/TurkuazVM/ISOs
+- Android virtual/system image output defaults to USERPROFILE/TurkuazVM/Images/Android
+- VM-specific Android private disk and AVD userdata default to USERPROFILE/TurkuazVM/VMs/<vm-id>/runtime
+- TURKUAZVM_USER_DATA_ROOT can override the large user data root without changing config schema
+- Existing LOCALAPPDATA/TurkuazVM VM metadata remains in place
+- Legacy data/machines disk, attached ISO and Android runtime media paths remain readable through fallback
+- Existing runtime download-sources path choices are preserved; fresh installs receive USERPROFILE defaults
+- Tauri CLI is pinned to 2.11.4 for Windows distribution
+- Official Tauri 2.11.4 NSIS template is Git-blob-verified before install-root patching
+- Real Windows smoke asserts exact branded roots for /CurrentUser and /AllUsers
+constraints:
+- QEMU is not bundled in the installer and must remain available through the existing dependency/runtime layer
+- v0.41.5 release artifacts remain immutable; the corrected install root ships as v0.41.6
+preserved:
+- v0.41.5 AppData runtime-root, dual NSIS install modes and Turkish MultiUser localization
+- v0.41.4 Windows NSIS/portable distribution and release asset automation
+- v0.41.3 Windows/Linux Cargo and QEMU CI hardening
+- v0.41.2 Connection Center running-VM SSH/RDP prepare behavior
+validation:
+  windows_distribution_contract: REQUIRED_IN_PR
+  v0415_runtime_data_root_contract: REQUIRED_IN_PR
+  v0416_turkuazlabs_install_root_contract: REQUIRED_IN_PR
+  v0416_windows_user_data_root_contract: REQUIRED_IN_PR
+  windows_current_user_exact_install_root_smoke: REQUIRED_IN_PR
+  windows_all_users_exact_install_root_smoke: REQUIRED_IN_PR
+  windows_runtime_data_root_smoke: REQUIRED_IN_PR
+  windows_user_data_root_smoke: REQUIRED_IN_PR
+  compiler_linux_workspace: REQUIRED_IN_PR
+  compiler_windows_workspace: REQUIRED_IN_PR
+  runtime_validation: REQUIRED_IN_PR
+  host_resilience_policy: REQUIRED_IN_PR
+  host_resilience_runtime: REQUIRED_IN_PR
+  artifact_cache_agent: REQUIRED_IN_PR
+  release_v0416_final_pr_ci: REQUIRED_BEFORE_MERGE
+  release_v0416_release_assets: REQUIRED_AFTER_TAG
+release_gate: FINAL_PR_CI_REQUIRED
+production_claim: false
