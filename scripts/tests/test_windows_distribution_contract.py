@@ -78,6 +78,7 @@ def main() -> None:
     require(".github/workflows/windows-distribution.yml", "test_windows_installer_smoke.ps1")
     require(".github/workflows/windows-distribution.yml", "test_v0415_windows_runtime_data_root_contract.py")
     require(".github/workflows/windows-distribution.yml", "test_v0416_turkuazlabs_install_root_contract.py")
+    require(".github/workflows/windows-distribution.yml", "test_v0416_windows_user_data_root_contract.py")
     require(".github/workflows/windows-distribution.yml", "Smoke test current-user, per-machine, AppData runtime, TurkuazLabs install root, user data root and uninstall")
     require(".github/workflows/windows-distribution.yml", "actions/upload-artifact@v4")
     require(".github/workflows/windows-distribution.yml", "gh release upload")
