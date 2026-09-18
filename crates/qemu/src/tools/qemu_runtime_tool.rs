@@ -361,12 +361,13 @@ where
 
         let endpoint = self.allocate_qmp_endpoint()?;
         let (display_plan, display) = self.allocate_display_plan()?;
-        let arguments = QemuCommandBuilder::build_arguments_with_gpu(
+        let arguments = QemuCommandBuilder::build_arguments_with_gpu_and_image_root(
             machine,
             endpoint,
             display_plan,
             self.settings.gpu,
             &self.settings.data_root,
+            &self.settings.image_root,
             network_plan,
             runtime_media,
         )
