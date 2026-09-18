@@ -414,14 +414,22 @@ impl CloneStoragePort for QemuImgTool {
         source_vm_id: &VmId,
         target_vm_id: &VmId,
     ) -> Result<(), CloneStorageError> {
-        let source_root = self.data_machine_root(source_vm_id);
-        let target_root = self.data_machine_root(target_vm_id);
-        for directory in [DIR_MEDIA, DIR_FIRMWARE] {
-            Self::copy_directory_recursive(
-                &source_root.join(directory),
-                &target_root.join(directory),
-            )?;
-        }
+        let source_data_root = self.data_machine_root(source_vm_id);
+        let target_data_root = self.data_machine_root(target_vm_id);
+        Self::copy_directory_recursive(
+            &source_data_root.join(DIR_FIRMWARE),
+            &target_data_root.join(DIR_FIRMWARE),
+        )?;
+
+        let source_primary_media = self.image_machine_root(source_vm_id).join(DIR_MEDIA);
+        let source_legacy_media = source_data_root.join(DIR_MEDIA);
+        let source_media = if source_primary_media.exists() || !source_legacy_media.exists() {
+            source_primary_media
+        } else {
+            source_legacy_media
+        };
+        let target_media = self.image_machine_root(target_vm_id).join(DIR_MEDIA);
+        Self::copy_directory_recursive(&source_media, &target_media)?;
         Ok(())
     }
 
