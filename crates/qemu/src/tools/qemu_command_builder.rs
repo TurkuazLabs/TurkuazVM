@@ -147,7 +147,7 @@ impl QemuCommandBuilder {
         Self::append_display(display_plan, gpu, &mut arguments);
 
         Self::append_firmware(machine, data_root, runtime_media, &mut arguments)?;
-        Self::append_installer_iso(machine, data_root, &mut arguments)?;
+        Self::append_installer_iso(machine, data_root, image_root, &mut arguments)?;
         Self::append_boot_order(machine, runtime_media, &mut arguments)?;
         Self::append_runtime_disks(runtime_media, &mut arguments)?;
         Self::append_disks(machine, data_root, image_root, &mut arguments);
@@ -282,15 +282,24 @@ impl QemuCommandBuilder {
     fn append_installer_iso(
         machine: &VirtualMachine,
         data_root: &Path,
+        image_root: &Path,
         arguments: &mut Vec<String>,
     ) -> Result<(), QemuCommandBuildError> {
         let Some(iso) = machine.guest_boot().installer_iso() else {
             return Ok(());
         };
-        let path = data_root
+        let primary = image_root
+            .join(machine.id().as_str())
+            .join(iso.relative_path());
+        let legacy = data_root
             .join(DIR_MACHINES)
             .join(machine.id().as_str())
             .join(iso.relative_path());
+        let path = if primary.is_file() || !legacy.is_file() {
+            primary
+        } else {
+            legacy
+        };
         if !path.is_file() {
             return Err(QemuCommandBuildError::MissingInstallerIso(path));
         }
