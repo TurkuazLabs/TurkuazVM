@@ -30,6 +30,7 @@ def main() -> None:
     package = "scripts/package_windows_distribution.ps1"
     smoke = "scripts/test_windows_installer_smoke.ps1"
     workflow = ".github/workflows/windows-distribution.yml"
+    desktop_main = "apps/desktop/src-tauri/src/main.rs"
 
     require(package, '$TauriCliVersion = "2.11.4"')
     require(package, "tauri-cli-v$TauriCliVersion")
@@ -44,6 +45,17 @@ def main() -> None:
     require(package, "Remove-Item -LiteralPath $GeneratedPath -Force")
 
     require(".gitignore", "/apps/desktop/src-tauri/windows/installer.generated.nsi")
+
+    require(desktop_main, 'const WINDOWS_USER_PROFILE_ENV: &str = "USERPROFILE";')
+    require(desktop_main, 'const USER_DATA_ROOT_ENV: &str = "TURKUAZVM_USER_DATA_ROOT";')
+    require(desktop_main, 'const USER_DATA_VM_DIRECTORY: &str = "VMs";')
+    require(desktop_main, 'const USER_DATA_ISO_DIRECTORY: &str = "ISOs";')
+    require(desktop_main, 'const USER_DATA_IMAGE_DIRECTORY: &str = "Images";')
+    require(desktop_main, 'const USER_DATA_ANDROID_IMAGE_DIRECTORY: &str = "Android";')
+    require(desktop_main, "windows_user_data_root()?")
+    require(desktop_main, '"  data_root: ./data"')
+    require(desktop_main, '"  installer_media: ./data/installer-media"')
+    require(desktop_main, '"  android_images: ./data/android-image-builds"')
 
     require(smoke, '$BrandInstallRelativePath = "TurkuazLabs\\TurkuazVM"')
     require(smoke, "CURRENT_USER_INSTALL_ROOT_MISMATCH")
